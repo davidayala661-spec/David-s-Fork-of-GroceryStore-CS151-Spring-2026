@@ -7,6 +7,6 @@ public class RegularCustomer extends Customer {
     }
 
     public void signUpForVIP() {
-        System.out.println(firstName + " " + lastName + " signed up for VIP.");
+        System.out.println(firstName + " " + lastName + " signed up for VIP membership.");
     }
 }

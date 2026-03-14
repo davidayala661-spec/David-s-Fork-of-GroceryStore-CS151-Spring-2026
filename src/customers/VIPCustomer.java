@@ -15,10 +15,6 @@ public class VIPCustomer extends Customer {
         return discountRate;
     }
 
-    public void setDiscountRate(double discountRate) {
-        this.discountRate = discountRate;
-    }
-
     public int getPoints() {
         return points;
     }
