@@ -9,10 +9,10 @@ public abstract class Customer {
     protected String lastName;
     protected ShoppingCart cart;
 
-}
-
-public Customer(int customerId, String firstName, String lastName) {
-    this.customerId = customerId;
-    this.firstName = firstName;
-    this.lastName = lastName;
+    public Customer(int customerId, String firstName, String lastName) {
+        this.customerId = customerId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.cart = new ShoppingCart();
+    }
 }
