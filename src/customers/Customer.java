@@ -2,7 +2,7 @@ package customers;
 
 import cart.ShoppingCart;
 
-public abstract class Customer {
+public abstract class Customer implements Displayable {
 
     protected int customerId;
     protected String firstName;
@@ -32,6 +32,7 @@ public abstract class Customer {
         return cart;
     }
 
+    @Override
     public void displayCustomerInfo() {
         System.out.println("Customer ID: " + customerId);
         System.out.println("Name: " + firstName + " " + lastName);
