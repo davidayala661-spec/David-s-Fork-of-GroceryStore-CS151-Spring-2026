@@ -45,4 +45,9 @@ public class Stocker extends Employee {
     public boolean canChangeQuantity() {
         return false; // stockers cannot change the stock quantity, only view and restock in sections
     }
+
+    @Override
+    public boolean canCheckHistory() {
+        return false; // stockers cannot check history, only managers can check it
+    }
 }

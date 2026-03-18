@@ -2,6 +2,7 @@ package employee;
 
 import inventory.Inventory;
 import product.Product;
+import customer.Customer;
 
 public class Manager extends Employee {
 
@@ -52,5 +53,22 @@ public class Manager extends Employee {
     @Override
     public boolean canChangeQuantity() {
         return true; // managers can modify inventory quantities
+    }
+
+    @Override
+    public boolean canCheckHistory() {
+        return true; // managers can check history, stockers cannot
+    }
+
+    public void viewCustomerHistory(Customer customer) {
+        if (customer == null) {
+            System.out.println("Customer not found.");
+            return;
+        } else {
+            System.out.println("Purchase history for " + customer.getFullName() + ":");
+
+            customer.printCustomerHistory(); // prints the customer's purchase history from customer class
+        
+        }
     }
 }

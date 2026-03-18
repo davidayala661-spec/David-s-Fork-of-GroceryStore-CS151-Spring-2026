@@ -25,6 +25,14 @@ public abstract class Employee {
         return lastName;
     }
 
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+
+    public double applyDiscount(double price) {
+        return price * (1 - discountRate);
+    }
+
     public int getEmployeeID() {
         return employeeID;
     }
@@ -37,7 +45,11 @@ public abstract class Employee {
         return discountRate;
     }
 
-    boolean canChangeQuantity() {
+    public boolean canChangeQuantity() {
         return false; // by default, employees cannot change quantity, but manager can change it
+    }
+
+    public boolean canCheckHistory() {
+        return false; // by default, employees cannot check history, but manager can check it
     }
 }
