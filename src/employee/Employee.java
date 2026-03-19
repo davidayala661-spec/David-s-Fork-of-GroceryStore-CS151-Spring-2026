@@ -29,6 +29,12 @@ public abstract class Employee {
         return firstName + " " + lastName;
     }
 
+    public void viewEmployeeInfo() {
+        System.out.println("Employee ID: " + employeeID);
+        System.out.println("Name: " + getFullName());
+        System.out.println("Department: " + department);
+    }
+
     public double applyDiscount(double price) {
         return price * (1 - discountRate);
     }
