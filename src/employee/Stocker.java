@@ -1,7 +1,8 @@
 package employee;
 
 import inventory.Inventory;
-import product.Product;
+import products.Products;
+import shelf.Shelf;
 
 public class Stocker extends Employee {
     public Stocker(String firstName, String lastName, int employeeID) {
@@ -12,33 +13,27 @@ public class Stocker extends Employee {
     private static final int LOW_STOCK = 10; // threshold for low stock, can be adjusted as needed
 
 
-    public void stockProduct(Inventory inventory, String section, int productID, int quantity) {
-        
-        Product product = inventory.getProduct(section, productID);
+    public void stockProduct(Inventory inventory, Shelf shelf, int productID, int quantity) {
+        // add inventory change like subtract from inventory and interact with product and inventory to add stock to the product in the section
+        Products products = inventory.getProduct(shelf.getSection(), productID);
 
-        if (product == null) {
-            System.out.println(productID + " not found in section " + section);
+        if (products == null) {
+            System.out.println(productID + " not found in section " + shelf.getSection());
             return;
         }
 
         try {
-            product.addStock(quantity);
-            System.out.println("Stocked " + quantity + " " + product.getName() + " in section " + section);
+            products.stockToShelf(quantity); // move inventory ot shelf
+            shelf.addProduct(products); // add product to shelf
+
+            System.out.println("Stocked " + quantity + " " + products.getName() + " in shelf " + shelf.getSection());
         } catch (IllegalArgumentException e) {
             System.out.println("Error stocking product: " + e.getMessage());
         }
     }
 
-    public void viewLowShelfStock(Inventory inventory, String section) {
-        System.out.println("Low stock products in section " + section + ":");
-        for (int i = 0; i < inventory.getSectionSize(section); i++) {
-            Product product = inventory.getProduct(section, i);
-            if (product != null && product.getStockQuantity() < LOW_STOCK) { // low stock and tells them to restock
-                System.out.println("- " + product.getName() 
-                    + " (ID: " + product.getProductID() + ", Stock: " 
-                    + product.getStockQuantity() + ")");
-            }
-        }
+    public void viewLowShelfStock(Shelf shelf) {
+        shelf.printLowStock(LOW_STOCK); // print low stock products in the shelf
     }
 
     @Override

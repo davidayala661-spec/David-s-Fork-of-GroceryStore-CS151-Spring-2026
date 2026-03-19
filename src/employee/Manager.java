@@ -1,7 +1,8 @@
 package employee;
 
 import inventory.Inventory;
-import product.Product;
+import products.Products;
+import shelf.Shelf;
 import customer.Customer;
 
 public class Manager extends Employee {
@@ -12,7 +13,7 @@ public class Manager extends Employee {
     }
 
     // Managers can add quantity to the inventory
-    public void addProduct(Inventory inventory, String section, Product product) {
+    public void addProduct(Inventory inventory, String section, Products product) {
         inventory.addProduct(section, product);
         System.out.println("Added product " + product.getName() + " to section " + section);
     }
@@ -20,7 +21,7 @@ public class Manager extends Employee {
     // Managers can remove quantity from the inventory
     public void removeProduct(Inventory inventory, String section, int productID) {
 
-        Product product = inventory.getProduct(section, productID);
+        Products product = inventory.getProduct(section, productID);
 
         if (product == null) {
             System.out.println("Product not found.");
@@ -34,7 +35,7 @@ public class Manager extends Employee {
     // Managers can change product prices
     public void changePrice(Inventory inventory, String section, int productID, double newPrice) {
 
-        Product product = inventory.getProduct(section, productID);
+        Products product = inventory.getProduct(section, productID);
 
         if (product == null) {
             System.out.println("Product not found.");
