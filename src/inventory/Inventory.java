@@ -3,7 +3,9 @@ package inventory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import exceptions.CapacityExceededException;
+import exceptions.NotFoundException;
+import exceptions.InvalidQuantityException;
 import products.Products;
 
 public class Inventory {
@@ -16,30 +18,31 @@ public class Inventory {
         inventory = new HashMap<>();
     }
 
-    public void addProduct(String section, Products product) {
+    public void addProduct(String section, Products product) throws CapacityExceededException {
         if (getTotalProductCount() >= MAX_PRODUCTS) {
-            throw new IllegalStateException("Inventory is at maximum capacity of 100 products.");
+            throw new CapacityExceededException("Cannot add more than 100 products to inventory.");
         }
 
-        inventory.putIfAbsent(section, new HashMap<>());
+        inventory.putIfAbsent(section, new HashMap<Integer, Products>());
         HashMap<Integer, Products> sectionProducts = inventory.get(section);
 
         if (sectionProducts.containsKey(product.getID())) {
-            throw new IllegalArgumentException("Product ID already exists in section " + section);
+            System.out.println("Product ID already exists in section " + section);
+            return;
         }
 
         sectionProducts.put(product.getID(), product);
     }
 
-    public void removeProduct(String section, int productID) {
+    public void removeProduct(String section, int productID) throws NotFoundException {
         if (!inventory.containsKey(section)) {
-            throw new IllegalArgumentException("Section not found: " + section);
+            throw new NotFoundException("Section not found: " + section);
         }
 
         HashMap<Integer, Products> sectionProducts = inventory.get(section);
 
         if (!sectionProducts.containsKey(productID)) {
-            throw new IllegalArgumentException("Product ID " + productID + " not found in section " + section);
+            throw new NotFoundException("Product ID " + productID + " not found in section " + section);
         }
 
         sectionProducts.remove(productID);
@@ -56,41 +59,51 @@ public class Inventory {
         return inventory.get(section).get(productID);
     }
 
-    public Products findProduct(int productID) {
+    public Products findProduct(int productID) throws NotFoundException {
         for (HashMap<Integer, Products> sectionProducts : inventory.values()) {
             if (sectionProducts.containsKey(productID)) {
                 return sectionProducts.get(productID);
             }
         }
-        return null;
+        throw new NotFoundException("Product ID " + productID + " not found in inventory.");
     }
 
-    public void restockProduct(String section, int productID, int quantity) {
+    public void restockProduct(String section, int productID, int quantity)
+            throws NotFoundException, InvalidQuantityException {
+        if (quantity <= 0) {
+            throw new InvalidQuantityException("Restock quantity must be greater than 0.");
+        }
+
         Products product = getProduct(section, productID);
 
         if (product == null) {
-            throw new IllegalArgumentException("Product not found in section " + section);
+            throw new NotFoundException("Product ID " + productID + " not found in section " + section);
         }
 
         product.setQuantity(product.getQuantity() + quantity);
     }
 
-    public void decreaseStock(String section, int productID, int quantity) {
+    public void decreaseStock(String section, int productID, int quantity)
+            throws NotFoundException, InvalidQuantityException {
+        if (quantity <= 0) {
+            throw new InvalidQuantityException("Decrease quantity must be greater than 0.");
+        }
+
         Products product = getProduct(section, productID);
 
         if (product == null) {
-            throw new IllegalArgumentException("Product not found in section " + section);
+            throw new NotFoundException("Product ID " + productID + " not found in section " + section);
         }
 
         if (quantity > product.getQuantity()) {
-            throw new IllegalArgumentException("Not enough stock available.");
+            throw new InvalidQuantityException("Not enough stock available for " + product.getName());
         }
 
         product.setQuantity(product.getQuantity() - quantity);
     }
 
     public List<Products> listLowStock(int threshold) {
-        List<Products> lowStockProducts = new ArrayList<>();
+        List<Products> lowStockProducts = new ArrayList<Products>();
 
         for (HashMap<Integer, Products> sectionProducts : inventory.values()) {
             for (Products product : sectionProducts.values()) {
@@ -104,7 +117,7 @@ public class Inventory {
     }
 
     public List<Products> searchByName(String keyword) {
-        List<Products> matches = new ArrayList<>();
+        List<Products> matches = new ArrayList<Products>();
         String lowerKeyword = keyword.toLowerCase();
 
         for (HashMap<Integer, Products> sectionProducts : inventory.values()) {
@@ -125,12 +138,9 @@ public class Inventory {
         }
 
         System.out.println("Full Inventory:");
-        for (Map.Entry<String, HashMap<Integer, Products>> entry : inventory.entrySet()) {
-            String section = entry.getKey();
-            HashMap<Integer, Products> sectionProducts = entry.getValue();
-
+        for (String section : inventory.keySet()) {
             System.out.println("Section: " + section);
-            for (Products product : sectionProducts.values()) {
+            for (Products product : inventory.get(section).values()) {
                 System.out.println("- " + product.getName()
                         + " (ID: " + product.getID()
                         + ", Price: $" + product.getPrice()
@@ -147,16 +157,8 @@ public class Inventory {
         return count;
     }
 
-    public boolean hasSection(String section) {
-        return inventory.containsKey(section);
-    }
-
-    public HashMap<String, HashMap<Integer, Products>> getInventory() {
-        return inventory;
-    }
-
     @Override
     public String toString() {
-        return "Inventory with " + getTotalProductCount() + " products across " + inventory.size() + " sections.";
+        return "Inventory with " + getTotalProductCount() + " products.";
     }
 }

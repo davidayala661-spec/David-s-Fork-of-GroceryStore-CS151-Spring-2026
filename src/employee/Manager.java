@@ -4,6 +4,8 @@ import inventory.Inventory;
 import products.Products;
 import shelf.Shelf;
 import customers.Customer;
+import exceptions.CapacityExceededException;
+import exceptions.NotFoundException;
 
 public class Manager extends Employee {
 
@@ -14,13 +16,16 @@ public class Manager extends Employee {
 
     // Managers can add quantity to the inventory
     public void addProduct(Inventory inventory, String section, Products product) {
-        inventory.addProduct(section, product);
-        System.out.println("Added product " + product.getName() + " to section " + section);
+        try {
+            inventory.addProduct(section, product);
+            System.out.println("Added product " + product.getName() + " to section " + section);
+        } catch (CapacityExceededException e) {
+            System.out.println("Add product error: " + e.getMessage());
+        }
     }
 
     // Managers can remove quantity from the inventory
     public void removeProduct(Inventory inventory, String section, int productID) {
-
         Products product = inventory.getProduct(section, productID);
 
         if (product == null) {
@@ -28,8 +33,12 @@ public class Manager extends Employee {
             return;
         }
 
-        inventory.removeProduct(section, productID);
-        System.out.println("Removed product ID " + productID + " from section " + section);
+        try {
+            inventory.removeProduct(section, productID);
+            System.out.println("Removed product ID " + productID + " from section " + section);
+        } catch (NotFoundException e) {
+            System.out.println("Remove product error: " + e.getMessage());
+        }
     }
 
     // Managers can change product prices

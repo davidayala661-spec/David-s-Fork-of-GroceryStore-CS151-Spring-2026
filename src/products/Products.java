@@ -6,7 +6,7 @@ public class Products {
     private int quantity;
     private int id;
 
-    public Products(String name, double price, int quantitym, int id) {
+    public Products(String name, double price, int quantity, int id) {
         this.name = name;
         this.price = price;
         this.quantity = quantity;
@@ -29,13 +29,10 @@ public class Products {
         return id;
     }
 
-    // new methods TBD
-
     public void setName(String name) {
-        if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("Product name cannot be empty.");
+        if (name != null && !name.trim().isEmpty()) {
+            this.name = name;
         }
-        this.name = name;
     }
 
     public void setPrice(double price) {
@@ -52,6 +49,7 @@ public class Products {
         this.quantity = quantity;
     }
 
+    // used by Stocker
     public void stockToShelf(int amount) {
         if (amount <= 0) {
             throw new IllegalArgumentException("Stock amount must be greater than 0.");
@@ -59,22 +57,8 @@ public class Products {
         this.quantity += amount;
     }
 
-    public void reduceStock(int amount) {
-        if (amount <= 0) {
-            throw new IllegalArgumentException("Amount must be greater than 0.");
-        }
-        if (amount > quantity) {
-            throw new IllegalArgumentException("Not enough stock available.");
-        }
-        this.quantity -= amount;
-    }
-
     @Override
     public String toString() {
-        return "Product: " + name +
-               ", ID: " + id +
-               ", Price: $" + price +
-               ", Quantity: " + quantity;
+        return "Product: " + name + ", ID: " + id + ", Price: $" + price + ", Quantity: " + quantity;
     }
-
 }
