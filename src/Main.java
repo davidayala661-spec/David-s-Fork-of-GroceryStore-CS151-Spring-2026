@@ -288,32 +288,97 @@ public class Main {
                     break;
 
                 case 12:
-                    System.out.println("\nAvailable aisles:");
-                    for (Aisles aisle : aisles) {
-                        System.out.println("- Aisle " + aisle.getAisleNumber() + " (" + aisle.getAisleType() + ")");
-                    }
-
-                    try {
-                        System.out.print("Enter aisle number to view: ");
-                        int selectedAisleNumber = scanner.nextInt();
-                        scanner.nextLine();
-
-                        Aisles selectedAisle = null;
+                    boolean viewingAisles = true;
+                    while (viewingAisles) {
+                        System.out.println("\nAvailable aisles:");
                         for (Aisles aisle : aisles) {
-                            if (aisle.getAisleNumber() == selectedAisleNumber) {
-                                selectedAisle = aisle;
-                                break;
-                            }
+                            System.out.println("- Aisle " + aisle.getAisleNumber() + " (" + aisle.getAisleType() + ")");
                         }
+                        System.out.println("0. Back to main menu");
 
-                        if (selectedAisle == null) {
-                            System.out.println("Aisle not found.");
-                        } else {
-                            selectedAisle.printAisle();
+                        try {
+                            System.out.print("Enter aisle number to view: ");
+                            int selectedAisleNumber = scanner.nextInt();
+                            scanner.nextLine();
+
+                            if (selectedAisleNumber == 0) {
+                                viewingAisles = false;
+                                continue;
+                            }
+
+                            Aisles selectedAisle = null;
+                            for (Aisles aisle : aisles) {
+                                if (aisle.getAisleNumber() == selectedAisleNumber) {
+                                    selectedAisle = aisle;
+                                    break;
+                                }
+                            }
+
+                            if (selectedAisle == null) {
+                                System.out.println("Aisle not found.");
+                                continue;
+                            }
+
+                            boolean viewingSingleAisle = true;
+                            while (viewingSingleAisle) {
+                                selectedAisle.printAisle();
+                                System.out.println("\n1. Buy from this aisle");
+                                System.out.println("2. Back to aisle list");
+                                System.out.print("Choose an option: ");
+
+                                int aisleAction = scanner.nextInt();
+                                scanner.nextLine();
+
+                                if (aisleAction == 2) {
+                                    viewingSingleAisle = false;
+                                    continue;
+                                }
+
+                                if (aisleAction != 1) {
+                                    System.out.println("Invalid choice.");
+                                    continue;
+                                }
+
+                                System.out.print("Enter product ID to buy: ");
+                                int productIdToBuy = scanner.nextInt();
+                                System.out.print("Enter quantity to buy: ");
+                                int quantityToBuy = scanner.nextInt();
+                                scanner.nextLine();
+
+                                if (quantityToBuy <= 0) {
+                                    System.out.println("Quantity must be greater than 0.");
+                                    continue;
+                                }
+
+                                Products selectedProduct = null;
+                                for (Products product : selectedAisle.getAllProducts()) {
+                                    if (product.getID() == productIdToBuy) {
+                                        selectedProduct = product;
+                                        break;
+                                    }
+                                }
+
+                                if (selectedProduct == null) {
+                                    System.out.println("Product ID not found in this aisle.");
+                                    continue;
+                                }
+
+                                if (selectedProduct.getQuantity() < quantityToBuy) {
+                                    System.out.println("Not enough stock. Available: " + selectedProduct.getQuantity());
+                                    continue;
+                                }
+
+                                selectedProduct.setQuantity(selectedProduct.getQuantity() - quantityToBuy);
+                                for (int i = 0; i < quantityToBuy; i++) {
+                                    customer1.getCart().addItem(selectedProduct.getName());
+                                }
+
+                                System.out.println("Added " + quantityToBuy + " x " + selectedProduct.getName() + " to cart.");
+                            }
+                        } catch (Exception e) {
+                            System.out.println("Invalid input.");
+                            scanner.nextLine();
                         }
-                    } catch (Exception e) {
-                        System.out.println("Invalid input.");
-                        scanner.nextLine();
                     }
                     break;
 
