@@ -10,8 +10,6 @@ public class Stocker extends Employee {
         // Stockers get a 6% discount
     }
 
-    private static final int LOW_STOCK = 10; // threshold for low stock, can be adjusted as needed
-
 
     public void stockProduct(Inventory inventory, Shelf shelf, int productID, int quantity) {
         // add inventory change like subtract from inventory and interact with product and inventory to add stock to the product in the section
@@ -32,17 +30,8 @@ public class Stocker extends Employee {
         }
     }
 
-    public void viewLowShelfStock(Shelf shelf) {
-        shelf.printLowStock(LOW_STOCK); // print low stock products in the shelf
+    public void viewLowShelfStock(Shelf shelf, int threshold) {
+        shelf.printLowStock(threshold); // print low stock products in the shelf
     }
 
-    @Override
-    public boolean canChangeQuantity() {
-        return false; // stockers cannot change the stock quantity, only view and restock in sections
-    }
-
-    @Override
-    public boolean canCheckHistory() {
-        return false; // stockers cannot check history, only managers can check it
-    }
 }

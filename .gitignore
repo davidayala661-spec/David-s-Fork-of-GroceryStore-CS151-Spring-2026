@@ -1,8 +1,0 @@
-# Compiled Java files
-*.class
-
-# Mac files
-.DS_Store
-
-# VSCode settings
-.vscode/

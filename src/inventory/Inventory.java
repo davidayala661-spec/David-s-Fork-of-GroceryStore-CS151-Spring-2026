@@ -23,6 +23,10 @@ public class Inventory {
             throw new CapacityExceededException("Cannot add more than 100 products to inventory.");
         }
 
+        if (product.getQuantity() > MAX_PRODUCTS) {
+            throw new CapacityExceededException("Product stock cannot exceed 100.");
+        }
+
         inventory.putIfAbsent(section, new HashMap<Integer, Products>());
         HashMap<Integer, Products> sectionProducts = inventory.get(section);
 
@@ -78,6 +82,10 @@ public class Inventory {
 
         if (product == null) {
             throw new NotFoundException("Product ID " + productID + " not found in section " + section);
+        }
+
+        if (product.getQuantity() + quantity > MAX_PRODUCTS) {
+            throw new InvalidQuantityException("Stock cannot exceed 100 for " + product.getName());
         }
 
         product.setQuantity(product.getQuantity() + quantity);
@@ -155,6 +163,47 @@ public class Inventory {
             count += sectionProducts.size();
         }
         return count;
+    }
+
+    public boolean printSectionProducts(String section) {
+        if (!inventory.containsKey(section) || inventory.get(section).isEmpty()) {
+            System.out.println("No products found in section " + section + ".");
+            return false;
+        }
+
+        System.out.println("Products in " + section + ":");
+        for (Products product : inventory.get(section).values()) {
+            int needed = MAX_PRODUCTS - product.getQuantity();
+            System.out.println("- " + product.getName() + " (ID: " + product.getID() + ", Stock: " + product.getQuantity() + ", Price: $" + product.getPrice() + ", Needs: " + needed + ")");
+
+        }
+
+        return true;
+    }
+
+    public List<Products> getProductsBySection(String section) {
+        List<Products> productsInSection = new ArrayList<>();
+
+        if (!inventory.containsKey(section)) {
+            return productsInSection;
+        }
+
+        productsInSection.addAll(inventory.get(section).values());
+        return productsInSection;
+    }
+
+    public int getNextProductId() {
+        int maxId = 1000;
+
+        for (HashMap<Integer, Products> sectionProducts : inventory.values()) {
+            for (Products product : sectionProducts.values()) {
+                if (product.getID() > maxId) {
+                    maxId = product.getID();
+                }
+            }
+        }
+
+        return maxId + 1;
     }
 
     @Override

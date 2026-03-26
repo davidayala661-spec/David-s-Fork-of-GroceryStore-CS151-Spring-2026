@@ -50,12 +50,4 @@ public abstract class Employee {
     public double getDiscountRate() {
         return discountRate;
     }
-
-    public boolean canChangeQuantity() {
-        return false; // by default, employees cannot change quantity, but manager can change it
-    }
-
-    public boolean canCheckHistory() {
-        return false; // by default, employees cannot check history, but manager can check it
-    }
 }

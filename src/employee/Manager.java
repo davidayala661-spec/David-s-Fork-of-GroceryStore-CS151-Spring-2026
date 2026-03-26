@@ -15,12 +15,13 @@ public class Manager extends Employee {
     }
 
     // Managers can add quantity to the inventory
-    public void addProduct(Inventory inventory, String section, Products product) {
+    public boolean addProduct(Inventory inventory, String section, Products product) {
         try {
             inventory.addProduct(section, product);
-            System.out.println("Added product " + product.getName() + " to section " + section);
+            return true;
         } catch (CapacityExceededException e) {
             System.out.println("Add product error: " + e.getMessage());
+            return false;
         }
     }
 
@@ -58,16 +59,6 @@ public class Manager extends Employee {
     // Managers can view inventory
     public void viewInventory(Inventory inventory) {
         inventory.printInventory();
-    }
-
-    @Override
-    public boolean canChangeQuantity() {
-        return true; // managers can modify inventory quantities
-    }
-
-    @Override
-    public boolean canCheckHistory() {
-        return true; // managers can check history, stockers cannot
     }
 
     public void viewCustomerHistory(Customer customer) {

@@ -46,6 +46,12 @@ public class Shelf {
 
     public void printShelf() {
         System.out.println("Products on shelf " + section + ":");
+
+        if (products.isEmpty()) {
+            System.out.println("This shelf is empty.");
+            return;
+        }
+
         for (Products product : products.values()) {
             System.out.println("- " + product.getName() + " (ID: " + product.getID() + ", Price: $" + product.getPrice() + ", Stock: " + product.getQuantity() + ")");
         }
