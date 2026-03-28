@@ -117,7 +117,9 @@ Opens the **Employee menu** (`EmployeeMenu`): choose **Stocker** or **Manager**,
 
 
     - Roman Lozano 
-    Organized the the menu/UI grocery store simulation: ensured the menus had proper flow into eachother and all methods were accesible through terminal. Completed **aisles** with shelf stock and shopping, Compelted the DataLoader to organize main, started the Foundation for products. Compelted the saftely EXIT extra credit.
+    Organized the the menu/UI grocery store simulation: ensured the menus had proper flow into eachother and all methods were accesible
+    through terminal. Completed **aisles** with shelf stock and shopping, Compelted the DataLoader to organize main, started the 
+    Foundation for products. Compelted the saftely EXIT extra credit.
 
 
     - Vishalkiran Raichur  
