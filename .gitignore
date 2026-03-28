@@ -1,0 +1,8 @@
+*.class
+bin/
+build/
+out/
+target/
+*.tmp
+.vscode/
+.DS_Store
