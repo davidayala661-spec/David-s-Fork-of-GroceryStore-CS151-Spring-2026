@@ -1,11 +1,14 @@
 package products;
-
+/* Products are the items that are sold in the store.
+Products contain a name, price, quantity, and id.
+Products interact with the inventory and shelves to add and remove stock.
+*/
 public class Products {
     private String name;
     private double price;
     private int quantity;
     private int id;
-
+   
     public Products(String name, double price, int quantity, int id) {
         this.name = name;
         this.price = price;
@@ -41,7 +44,7 @@ public class Products {
         }
         this.price = price;
     }
-
+     // cannot be negative
     public void setQuantity(int quantity) {
         if (quantity < 0) {
             throw new IllegalArgumentException("Quantity cannot be negative.");

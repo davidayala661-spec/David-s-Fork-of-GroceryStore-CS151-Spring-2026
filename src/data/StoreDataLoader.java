@@ -6,15 +6,18 @@ import inventory.Inventory;
 import java.util.ArrayList;
 import java.util.List;
 import products.Products;
-
+// StoreDataLoader is used to load the default data for the store.
 public class StoreDataLoader {
     private static final int DEFAULT_AISLE_COUNT = 3;
     private static final int DEFAULT_SHELVES_PER_AISLE = 3;
     private static final int DEFAULT_PRODUCTS_PER_SHELF = 5;
     private static final int STARTING_PRODUCT_ID = 1000;
     private static final int MAX_QUANTITY = 10;
-
-    private static final String[] AISLE_TYPES = {"Dairy", "Fruits", "Meats"};
+/*Aisle examples, 
+  Aisles have 3 shelves, and each shelf has 5 products.
+  Products on a shelf are allowed to be up to 10 in quantity.
+  */  
+ private static final String[] AISLE_TYPES = {"Dairy", "Fruits", "Meats"};
 
     private static final String[][] AISLE_PRODUCTS = {
             {"Milk", "Cheese", "Yogurt", "Butter", "Cream",
@@ -33,7 +36,7 @@ public class StoreDataLoader {
             {1.99, 0.79, 1.29, 3.99, 4.49, 2.99, 1.49, 3.49, 2.29, 1.89, 5.99, 0.99, 3.79, 2.19, 0.89},
             {6.99, 5.49, 4.99, 6.49, 8.99, 7.49, 5.99, 4.49, 5.29, 10.99, 11.49, 9.99, 7.99, 8.49, 6.29}
     };
-
+// loads the data into main so main is not cluttered with code..
     private StoreDataLoader() {
     }
 

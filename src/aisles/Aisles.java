@@ -7,12 +7,13 @@ import java.util.List;
 import java.util.Map;
 import products.Products;
 
+//Aisles are used to store the products on shelves that users are able to browse and buy from.
 public class Aisles 
 {
     private String aisleType;
     private int aisleNumber;
     private HashMap<Integer, List<Products>> shelves;
-
+    // makes it so that the aisle type and number are not null and are greater than 0.
     public Aisles(String aisleType, int aisleNumber) 
     {
         if (aisleType == null || aisleType.trim().isEmpty())     
@@ -56,7 +57,7 @@ public class Aisles
         }
         shelves.putIfAbsent(shelfNumber, new ArrayList<>());
     }
-
+      // adds a product to a shelf
     public void addProductToShelf(int shelfNumber, Products product) 
     {
         if (product == null)
@@ -71,7 +72,7 @@ public class Aisles
         shelves.putIfAbsent(shelfNumber, new ArrayList<>());
         shelves.get(shelfNumber).add(product);
     }
-
+    // removes a product from a shelf
     public boolean removeProductFromShelf(int shelfNumber, int productId) 
     {
         if (!shelves.containsKey(shelfNumber)) 
@@ -98,7 +99,7 @@ public class Aisles
         }
         return Collections.unmodifiableList(shelves.get(shelfNumber));
     }
-
+    // lists of all products on all shelves
     public List<Products> getAllProducts()
      {
         List<Products> allProducts = new ArrayList<>();
