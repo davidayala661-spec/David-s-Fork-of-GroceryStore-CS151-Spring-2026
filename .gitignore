@@ -3,6 +3,8 @@ bin/
 build/
 out/
 target/
+*.log
+.idea/
 *.tmp
 .vscode/
 .DS_Store
