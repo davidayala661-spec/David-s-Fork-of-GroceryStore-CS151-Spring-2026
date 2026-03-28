@@ -1,6 +1,6 @@
 package exceptions;
 
-public class CapacityExceededException extends Exception {
+public class CapacityExceededException extends RuntimeException {
     public CapacityExceededException(String message) {
         super(message);
     }

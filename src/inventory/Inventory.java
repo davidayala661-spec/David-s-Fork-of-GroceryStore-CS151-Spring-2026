@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import exceptions.CapacityExceededException;
-import exceptions.NotFoundException;
+import exceptions.DuplicateProductException;
+import exceptions.InvalidProductException;
 import exceptions.InvalidQuantityException;
+import exceptions.InvalidSectionException;
+import exceptions.NotFoundException;
 import products.Products;
 
 public class Inventory {
@@ -18,7 +21,18 @@ public class Inventory {
         inventory = new HashMap<>();
     }
 
-    public void addProduct(String section, Products product) throws CapacityExceededException {
+    public void addProduct(String section, Products product)
+            throws CapacityExceededException, InvalidSectionException,
+                InvalidProductException, DuplicateProductException {
+
+        if (section == null || section.trim().isEmpty()) {
+            throw new InvalidSectionException("Section cannot be empty.");
+        }
+
+        if (product == null) {
+            throw new InvalidProductException("Product cannot be null.");
+        }
+
         if (getTotalProductCount() >= MAX_PRODUCTS) {
             throw new CapacityExceededException("Cannot add more than 100 products to inventory.");
         }
@@ -31,8 +45,8 @@ public class Inventory {
         HashMap<Integer, Products> sectionProducts = inventory.get(section);
 
         if (sectionProducts.containsKey(product.getID())) {
-            System.out.println("Product ID already exists in section " + section);
-            return;
+            throw new DuplicateProductException(
+                    "Product ID " + product.getID() + " already exists in section " + section);
         }
 
         sectionProducts.put(product.getID(), product);
@@ -57,6 +71,10 @@ public class Inventory {
     }
 
     public Products getProduct(String section, int productID) {
+        if (section == null || section.trim().isEmpty() || productID <= 0) {
+            return null;
+        }
+
         if (!inventory.containsKey(section)) {
             return null;
         }

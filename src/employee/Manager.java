@@ -5,6 +5,10 @@ import products.Products;
 import shelf.Shelf;
 import customers.Customer;
 import exceptions.CapacityExceededException;
+import exceptions.DuplicateProductException;
+import exceptions.InvalidPriceException;
+import exceptions.InvalidProductException;
+import exceptions.InvalidSectionException;
 import exceptions.NotFoundException;
 
 public class Manager extends Employee {
@@ -19,7 +23,8 @@ public class Manager extends Employee {
         try {
             inventory.addProduct(section, product);
             return true;
-        } catch (CapacityExceededException e) {
+        } catch (CapacityExceededException | InvalidSectionException
+                | InvalidProductException | DuplicateProductException e) {
             System.out.println("Add product error: " + e.getMessage());
             return false;
         }
@@ -44,7 +49,6 @@ public class Manager extends Employee {
 
     // Managers can change product prices
     public void changePrice(Inventory inventory, String section, int productID, double newPrice) {
-
         Products product = inventory.getProduct(section, productID);
 
         if (product == null) {
@@ -52,8 +56,12 @@ public class Manager extends Employee {
             return;
         }
 
-        product.setPrice(newPrice);
-        System.out.println(product.getName() + " price changed to $" + newPrice);
+        try {
+            product.setPrice(newPrice);
+            System.out.println(product.getName() + " price changed to $" + newPrice);
+        } catch (InvalidPriceException e) {
+            System.out.println("Price update error: " + e.getMessage());
+        }
     }
 
     // Managers can view inventory

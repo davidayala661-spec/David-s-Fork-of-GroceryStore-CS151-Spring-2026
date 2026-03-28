@@ -3,7 +3,12 @@ package employee;
 import aisles.Aisles;
 import customers.RegularCustomer;
 import customers.VIPCustomer;
+import exceptions.CapacityExceededException;
+import exceptions.DuplicateProductException;
+import exceptions.InvalidPriceException;
+import exceptions.InvalidProductException;
 import exceptions.InvalidQuantityException;
+import exceptions.InvalidSectionException;
 import exceptions.NotFoundException;
 import input.ConsoleInput;
 import inventory.Inventory;
@@ -198,9 +203,13 @@ public final class EmployeeMenu {
                                         break;
                                     }
 
-                                    chosenProduct.stockToShelf(restockAmount);
-                                    System.out.println("Restocked successfully.");
-                                    System.out.println(chosenProduct.getName() + " now has " + chosenProduct.getQuantity() + " on the shelf.");
+                                    try {
+                                        chosenProduct.stockToShelf(restockAmount);
+                                        System.out.println("Restocked successfully.");
+                                        System.out.println(chosenProduct.getName() + " now has " + chosenProduct.getQuantity() + " on the shelf.");
+                                    } catch (InvalidQuantityException e) {
+                                        System.out.println("Restock error: " + e.getMessage());
+                                    }
                                     break;
 
                                 case 3:
@@ -341,36 +350,36 @@ public final class EmployeeMenu {
 
                                     while (!done) {
                                         try {
+                                        System.out.println();
+                                        String name = ConsoleInput.readLine(scanner, "Enter product name: ");
+
+                                        double price = ConsoleInput.readDouble(scanner, "Enter price: ");
+
+                                        int quantity = ConsoleInput.readInt(scanner, "Enter quantity: ");
+
+                                        int id = inventory.getNextProductId();
+
+                                        Products newProduct = new Products(name, price, quantity, id);
+
+                                        boolean added = manager.addProduct(inventory, section, newProduct);
+
+                                        if (added) {
                                             System.out.println();
-                                            String name = ConsoleInput.readLine(scanner, "Enter product name: ");
+                                            System.out.println("Product added:");
+                                            System.out.print("Name: " + name);
+                                            System.out.print(" Section: " + section);
+                                            System.out.print(" ID: " + id);
+                                            System.out.print(" Price: $" + price);
+                                            System.out.println(" Quantity: " + quantity);
 
-                                            double price = ConsoleInput.readDouble(scanner, "Enter price: ");
-
-                                            int quantity = ConsoleInput.readInt(scanner, "Enter quantity: ");
-
-                                            int id = inventory.getNextProductId();// increment for next product
-
-                                            Products newProduct = new Products(name, price, quantity, id);
-
-                                            boolean added = manager.addProduct(inventory, section, newProduct);
-
-                                            if (added) {
-                                                System.out.println();
-                                                System.out.println("Product added:");
-                                                System.out.print("Name: " + name);
-                                                System.out.print(" Section: " + section);
-                                                System.out.print(" ID: " + id);
-                                                System.out.print(" Price: $" + price);
-                                                System.out.println(" Quantity: " + quantity);
-
-                                                done = true;
-                                            } else {
-                                                System.out.println("Please try again.");
-                                            }
-
-                                        } catch (Exception e) {
-                                            System.out.println("Invalid input or stock exceeds 100. Please try again.");
+                                            done = true;
+                                        } else {
+                                            System.out.println("Please try again.");
                                         }
+
+                                    } catch (Exception e) {
+                                        System.out.println("Invalid input or stock exceeds 100. Please try again.");
+                                    }
                                     }
                                 break;
 
@@ -537,8 +546,6 @@ public final class EmployeeMenu {
 
                                             done = true; // exit loop
 
-                                        } catch (IllegalArgumentException e) {
-                                            System.out.println("Error: " + e.getMessage());
                                         } catch (Exception e) {
                                             System.out.println("Invalid input. Please try again.");
                                         }

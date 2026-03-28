@@ -3,22 +3,30 @@ package shelf;
 import java.util.HashMap;
 import products.Products;
 import java.util.Collection;
+import exceptions.InvalidProductException;
+import exceptions.InvalidSectionException;
 
 public class Shelf {
     
     private String section;
     private HashMap<Integer, Products> products; // maps product ID to Product
 
-    public Shelf(String section) {
-        this.section = section;
-        this.products = new HashMap<>();
+    public Shelf(String section) throws InvalidSectionException {
+            if (section == null || section.trim().isEmpty()) {
+                throw new InvalidSectionException("Shelf section cannot be empty.");
+            }
+            this.section = section;
+            this.products = new HashMap<>();
     }
-
+    
     public String getSection() {
         return section;
     }
 
     public void addProduct(Products product) { // adds product to shelf
+        if (product == null) {
+            throw new InvalidProductException("Cannot add null product to shelf.");
+        }
         products.put(product.getID(), product);
     }
 

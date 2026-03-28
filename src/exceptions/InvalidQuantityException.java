@@ -1,6 +1,6 @@
 package exceptions;
 
-public class InvalidQuantityException extends Exception {
+public class InvalidQuantityException extends RuntimeException {
     public InvalidQuantityException(String message) {
         super(message);
     }

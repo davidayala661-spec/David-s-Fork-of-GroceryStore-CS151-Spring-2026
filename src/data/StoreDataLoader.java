@@ -2,6 +2,11 @@ package data;
 
 import aisles.Aisles;
 import exceptions.CapacityExceededException;
+import exceptions.DuplicateProductException;
+import exceptions.InvalidPriceException;
+import exceptions.InvalidProductException;
+import exceptions.InvalidQuantityException;
+import exceptions.InvalidSectionException;
 import inventory.Inventory;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,9 +59,13 @@ public class StoreDataLoader {
                     double price = AISLE_PRICES[aisleNumber - 1][listIndex];
                     int quantity = Math.min(MAX_QUANTITY, 6 + productIndex);
 
-                    Products product = new Products(productName, price, quantity, nextProductId);
-                    aisle.addProductToShelf(shelfNumber, product);
-                    nextProductId++;
+                    try {
+                        Products product = new Products(productName, price, quantity, nextProductId);
+                        aisle.addProductToShelf(shelfNumber, product);
+                        nextProductId++;
+                    } catch (Exception e) {
+                        throw new RuntimeException("Error loading default aisle data: " + e.getMessage(), e);
+                    }
                 }
             }
 
@@ -67,7 +76,8 @@ public class StoreDataLoader {
     }
 
     public static void loadAislesIntoInventory(Inventory inventory, List<Aisles> aisles)
-            throws CapacityExceededException {
+            throws CapacityExceededException, InvalidSectionException,
+                   InvalidProductException, DuplicateProductException {
         for (Aisles aisle : aisles) {
             String sectionName = aisle.getAisleType();
 

@@ -3,7 +3,11 @@ import customers.RegularCustomer;
 import customers.VIPCustomer;
 import data.StoreDataLoader;
 import exceptions.CapacityExceededException;
+import exceptions.DuplicateProductException;
+import exceptions.InvalidPriceException;
+import exceptions.InvalidProductException;
 import exceptions.InvalidQuantityException;
+import exceptions.InvalidSectionException;
 import exceptions.NotFoundException;
 import input.ConsoleInput;
 import inventory.Inventory;
@@ -35,12 +39,23 @@ public class Main {
         System.out.println("   Welcome to the Grocery Store  ");
         System.out.println("=================================");
 
-        // Prelad shelflist
+        // Preload shelflist
 
-        Shelf produceShelf = new Shelf("Produce");
-        Shelf dairyShelf = new Shelf("Dairy");
-        Shelf snacksShelf = new Shelf("Snacks");
-        Shelf suppliesShelf = new Shelf("Supplies");
+        Shelf produceShelf;
+        Shelf dairyShelf;
+        Shelf snacksShelf;
+        Shelf suppliesShelf;
+
+        try {
+            produceShelf = new Shelf("Produce");
+            dairyShelf = new Shelf("Dairy");
+            snacksShelf = new Shelf("Snacks");
+            suppliesShelf = new Shelf("Supplies");
+        } catch (InvalidSectionException e) {
+            System.out.println("Shelf setup error: " + e.getMessage());
+            scanner.close();
+            return;
+        }
 
         // Preload inventory and shelves with exception handling
         try {
@@ -79,9 +94,10 @@ public class Main {
             suppliesShelf.addProduct(new Products(rice.getName(), rice.getPrice(),9, rice.getID()));
 
 
-        } catch (CapacityExceededException e) {
+        } catch (CapacityExceededException | InvalidSectionException | InvalidProductException
+                | DuplicateProductException e) {
             System.out.println("Setup error: " + e.getMessage());
-        }
+        }   
 
         // Automatic inventory tests
         System.out.println("\n========== INVENTORY TESTS ==========");
@@ -149,8 +165,9 @@ public class Main {
         System.out.println("\n--- Edge Case: duplicate product ID ---");
         try {
             inventory.addProduct("Produce", new Products("Green Apples", 2.49, 15, 1001));
-        } catch (CapacityExceededException e) {
-            System.out.println("Capacity error: " + e.getMessage());
+        } catch (CapacityExceededException | InvalidSectionException | InvalidProductException
+                | DuplicateProductException e) {
+            System.out.println("Expected error: " + e.getMessage());
         }
 
         System.out.println("\n--- Edge Case: invalid product ID ---");

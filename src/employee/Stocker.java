@@ -3,6 +3,8 @@ package employee;
 import inventory.Inventory;
 import products.Products;
 import shelf.Shelf;
+import exceptions.InvalidProductException;
+import exceptions.InvalidQuantityException;
 
 public class Stocker extends Employee {
     public Stocker(String firstName, String lastName, int employeeID) {
@@ -25,7 +27,7 @@ public class Stocker extends Employee {
             shelf.addProduct(products); // add product to shelf
 
             System.out.println("Stocked " + quantity + " " + products.getName() + " in shelf " + shelf.getSection());
-        } catch (IllegalArgumentException e) {
+        } catch (InvalidQuantityException | InvalidProductException e) {
             System.out.println("Error stocking product: " + e.getMessage());
         }
     }
