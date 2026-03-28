@@ -3,10 +3,6 @@
 Project Done by:
 Jonas Quiballo  
 Roman Lozano  
-
-### Contribution
-Together we built the menu-driven grocery store simulation: role-based **customer** and **employee** flows (`StoreMenus`, `EmployeeMenu`), **aisles** with shelf stock and shopping, **checkout** receipts (tax, VIP discount, transaction ID), shared **console input** with `EXIT`, **inventory** integration, and README install/usage docs.
-
 Vishalkiran Raichur  
 Suparn Posina  
 
