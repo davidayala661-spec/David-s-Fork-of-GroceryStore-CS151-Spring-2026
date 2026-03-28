@@ -10,29 +10,35 @@ import java.util.List;
 import java.util.Map;
 import products.Products;
 
+// Handles checkout process including pricing, discounts, tax, and receipt generation
 public final class Checkout {
 
-    private static final double TAX_RATE = 0.095;
-    private static long nextTransactionId = 1;
+    private static final double TAX_RATE = 0.095; // Sales tax rate applied to all purchases
+    private static long nextTransactionId = 1;  // Keeps track of unique transaction IDs
 
+    // Private constructor to prevent instantiation (utility class)
     private Checkout() {
     }
 
+    // Prints receipt without aisle data (default case)
     public static void printReceipt(Customer customer, Inventory inventory) {
         printReceipt(customer, inventory, null);
     }
 
+    // Main checkout method that generates receipt with optional aisle support
     public static void printReceipt(Customer customer, Inventory inventory, List<Aisles> aisles) {
-        List<String> rawItems = customer.getCart().getItemsSnapshot();
+        List<String> rawItems = customer.getCart().getItemsSnapshot(); // Get items from customer's cart (snapshot to avoid modification issues)
         if (rawItems.isEmpty()) {
             System.out.println("Cart is empty. Nothing to checkout.");
             return;
         }
 
+        // Generate unique transaction ID and timestamp
         long transactionId = nextTransactionId++;
         LocalDateTime timestamp = LocalDateTime.now();
         DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
+        // Group duplicate items and count quantities using a map
         Map<String, Integer> lineCounts = new LinkedHashMap<>();
         for (String item : rawItems) {
             String key = item == null ? "" : item.trim();
@@ -50,6 +56,7 @@ public final class Checkout {
         double subtotal = 0.0;
         StringBuilder lineDetails = new StringBuilder();
 
+        // Calculate subtotal by iterating through each item and its quantity
         for (Map.Entry<String, Integer> entry : lineCounts.entrySet()) {
             String name = entry.getKey();
             int qty = entry.getValue();
@@ -60,6 +67,7 @@ public final class Checkout {
                     name, qty, unitPrice, lineTotal));
         }
 
+        // Apply discount and tax to compute final total
         double discountRate = clampDiscount(customer.getDiscountRate());
         double discountAmount = subtotal * discountRate;
         double afterDiscount = subtotal - discountAmount;
@@ -90,6 +98,7 @@ public final class Checkout {
         System.out.println("========================================");
         System.out.println();
 
+        // Clear cart after successful checkout
         customer.getCart().clearCart();
     }
 
@@ -102,7 +111,7 @@ public final class Checkout {
         }
         return rate;
     }
-
+    // Resolve item price from inventory or aisles
     private static double resolveUnitPrice(String name, Inventory inventory, List<Aisles> aisles) {
         Products fromInventory = inventory.findProductByExactName(name);
         if (fromInventory != null) {
