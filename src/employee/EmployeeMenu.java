@@ -1,11 +1,14 @@
 package employee;
 
+import aisles.Aisles;
 import customers.RegularCustomer;
 import customers.VIPCustomer;
 import exceptions.InvalidQuantityException;
 import exceptions.NotFoundException;
 import input.ConsoleInput;
 import inventory.Inventory;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import products.Products;
 import shelf.Shelf;
@@ -17,12 +20,14 @@ public final class EmployeeMenu {
 
     public static void run(Scanner scanner, Inventory inventory,
             RegularCustomer customer1, VIPCustomer customer2,
-            Shelf produceShelf, Shelf dairyShelf, Shelf snacksShelf, Shelf suppliesShelf) {
+            Shelf produceShelf, Shelf dairyShelf, Shelf snacksShelf, Shelf suppliesShelf,
+            List<Aisles> aisles) {
                     System.out.println("=============================");
                     System.out.println("|     Employee Menu      |");
                     System.out.println("=============================");
                     System.out.println("1. Stocker");
                     System.out.println("2. Manager");
+                    System.out.println("3. Exit (back to Grocery Store)");
 
                     int employeeTitle = -1;
 
@@ -31,7 +36,11 @@ public final class EmployeeMenu {
                         if (employeeTitle == 1 || employeeTitle == 2) {
                             break;
                         }
-                        System.out.println("Invalid choice. Please enter 1 or 2.");
+                        if (employeeTitle == 3) {
+                            System.out.println("Returning to Grocery Store menu.");
+                            return;
+                        }
+                        System.out.println("Invalid choice. Please enter 1, 2, or 3.");
                     }
 
                     if (employeeTitle == 1) { // stocker
@@ -44,13 +53,16 @@ public final class EmployeeMenu {
 
                         int lowStockThreshold = 10; // default threshold
 
-                        while (stockerInput != 4) { // loops and keeps asking till wants to leave stocker menu
+                        while (stockerInput != 7) { // loops and keeps asking till wants to leave stocker menu
                             System.out.println();
                             System.out.println("--- Stocker Menu ---");
                             System.out.println("1. View Low Stock Products");
                             System.out.println("2. Restock Product");
                             System.out.println("3. View Shelf");
-                            System.out.println("4. Exit Stocker Menu");
+                            System.out.println("4. Decrease product stock (inventory)");
+                            System.out.println("5. View low stock in aisles");
+                            System.out.println("6. View inventory");
+                            System.out.println("7. Exit Stocker Menu");
                             stockerInput = ConsoleInput.readInt(scanner, "Enter your choice: ");
 
                             switch (stockerInput) {
@@ -235,14 +247,35 @@ public final class EmployeeMenu {
                                 break;
 
                                 case 4:
-                                    System.out.println("Thank you for using the Grocery Store System!");
+                                    try {
+                                        String invSection = ConsoleInput.readLine(scanner, "Enter section: ");
+                                        int decProductId = ConsoleInput.readInt(scanner, "Enter product ID: ");
+                                        int decQty = ConsoleInput.readInt(scanner, "Enter quantity to decrease: ");
+                                        inventory.decreaseStock(invSection, decProductId, decQty);
+                                        System.out.println("Product stock decreased successfully.");
+                                    } catch (NotFoundException | InvalidQuantityException e) {
+                                        System.out.println("Decrease stock error: " + e.getMessage());
+                                    }
+                                    break;
+
+                                case 5:
+                                    int aisleThreshold = ConsoleInput.readInt(scanner, "Enter low-stock threshold: ");
+                                    printLowStockAisles(aisles, aisleThreshold);
+                                    break;
+
+                                case 6:
+                                    inventory.printInventory();
+                                    break;
+
+                                case 7:
+                                    System.out.println("Exiting Stocker Menu");
                                     break;
 
                                 default:
                                     System.out.println("Invalid choice. Please try again.");
                             }
 
-                            if (stockerInput == 4) {
+                            if (stockerInput == 7) {
                                 break;
                             }
                         }
@@ -257,7 +290,7 @@ public final class EmployeeMenu {
 
                         int managerInput = -1;
 
-                        while (managerInput != 7) {
+                        while (managerInput != 8) {
                             System.out.println();
                             System.out.println("--- Manager Menu ---");
                             System.out.println("1. Add Product to Inventory");
@@ -266,7 +299,8 @@ public final class EmployeeMenu {
                             System.out.println("4. Restock Inventory Products");
                             System.out.println("5. View Inventory");
                             System.out.println("6. View Customer Info");
-                            System.out.println("7. Exit Manager Menu");
+                            System.out.println("7. Find product by ID");
+                            System.out.println("8. Exit Manager Menu");
                             managerInput = ConsoleInput.readInt(scanner, "Enter your choice: ");
 
                             switch (managerInput) {
@@ -643,15 +677,51 @@ public final class EmployeeMenu {
                                     }
                                 break;
 
-                                case 7: // exitt
+                                case 7:
+                                    try {
+                                        int lookupId = ConsoleInput.readInt(scanner, "Enter product ID to find: ");
+                                        Products foundProduct = inventory.findProduct(lookupId);
+                                        System.out.println("Found: " + foundProduct);
+                                    } catch (NotFoundException e) {
+                                        System.out.println("Search error: " + e.getMessage());
+                                    }
+                                    break;
+
+                                case 8:
                                     System.out.println("Exiting Manager Menu");
-                                break;
+                                    break;
 
-
+                                default:
+                                    System.out.println("Invalid choice. Please try again.");
                             }
                         }
                     }
                     // if stocker, show add to shelf, which move products to inventory, find products in shelf, view low stock products in shelf, remove protect
                     // if manager, change price, add products to inventory, remove products from inventory, view inventory, view customer history
+    }
+
+    private static void printLowStockAisles(List<Aisles> aisles, int threshold) {
+        boolean any = false;
+        for (Aisles aisle : aisles) {
+            boolean aisleHeaderPrinted = false;
+            for (Map.Entry<Integer, List<Products>> entry : aisle.getShelves().entrySet()) {
+                int shelfNum = entry.getKey();
+                for (Products product : entry.getValue()) {
+                    if (product.getQuantity() < threshold) {
+                        if (!aisleHeaderPrinted) {
+                            System.out.println();
+                            System.out.println("Aisle " + aisle.getAisleNumber() + " (" + aisle.getAisleType() + ")");
+                            aisleHeaderPrinted = true;
+                            any = true;
+                        }
+                        System.out.println("  Shelf " + shelfNum + ": " + product.getName()
+                                + " (ID " + product.getID() + ", stock " + product.getQuantity() + ")");
+                    }
+                }
+            }
+        }
+        if (!any) {
+            System.out.println("No products below threshold " + threshold + " in any aisle.");
+        }
     }
 }

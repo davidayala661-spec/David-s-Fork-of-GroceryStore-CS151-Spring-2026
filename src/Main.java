@@ -1,10 +1,7 @@
-﻿import aisles.Aisles;
-import checkout.Checkout;
-import customers.Customer;
+import aisles.Aisles;
 import customers.RegularCustomer;
 import customers.VIPCustomer;
 import data.StoreDataLoader;
-import employee.*;
 import exceptions.CapacityExceededException;
 import exceptions.InvalidQuantityException;
 import exceptions.NotFoundException;
@@ -12,6 +9,7 @@ import input.ConsoleInput;
 import inventory.Inventory;
 import java.util.List;
 import java.util.Scanner;
+import menu.StoreMenus;
 import products.Products;
 import shelf.Shelf;
 
@@ -183,235 +181,30 @@ public class Main {
             System.out.println("Expected error: " + e.getMessage());
         }
 
-        // Menu
-        int choice = -1;
+        int roleChoice = -1;
+        while (roleChoice != 4) {
+            System.out.println("\n===== Grocery Store =====");
+            System.out.println("Who are you?");
+            System.out.println("1. Regular customer");
+            System.out.println("2. VIP customer");
+            System.out.println("3. Employee");
+            System.out.println("4. Exit");
+            roleChoice = ConsoleInput.readInt(scanner, "Enter your choice: ");
 
-        while (choice != 15) {
-            System.out.println("\n===== Grocery Store Menu =====");
-            System.out.println("1. View Regular Customer Info");
-            System.out.println("2. View Regular Customer Cart");
-            System.out.println("3. Add Item to Regular Customer Cart");
-            System.out.println("4. Remove Item from Regular Customer Cart");
-            System.out.println("5. Clear Regular Customer Cart");
-            System.out.println("6. View VIP Customer Benefits");
-            System.out.println("7. View Inventory");
-            System.out.println("8. Find Product by ID");
-            System.out.println("9. Restock Product");
-            System.out.println("10. Decrease Product Stock");
-            System.out.println("11. View Low Stock Products");
-            System.out.println("12. View Aisles");
-            System.out.println("13. Employee Menu");
-            System.out.println("14. Checkout / Print receipt");
-            System.out.println("15. Exit");
-            choice = ConsoleInput.readInt(scanner, "Enter your choice: ");
-
-            switch (choice) {
+            switch (roleChoice) {
                 case 1:
-                    customer1.displayCustomerInfo();
+                    StoreMenus.runRegularCustomerSession(scanner, customer1, inventory, aisles);
                     break;
-
                 case 2:
-                    customer1.getCart().viewCart();
-                    System.out.println("Total items: " + customer1.getCart().getTotalItems());
+                    StoreMenus.runVipCustomerSession(scanner, customer2, inventory, aisles, customer1);
                     break;
-
                 case 3:
-                    String addItem = ConsoleInput.readLine(scanner, "Enter item to add: ");
-                    customer1.getCart().addItem(addItem);
-                    break;
-
-                case 4:
-                    String removeItem = ConsoleInput.readLine(scanner, "Enter item to remove: ");
-                    customer1.getCart().removeItem(removeItem);
-                    break;
-
-                case 5:
-                    customer1.getCart().clearCart();
-                    break;
-
-                case 6:
-                    customer2.displayCustomerInfo();
-                    customer2.viewVIPBenefits();
-                    customer2.getCart().viewCart();
-                    break;
-
-                case 7:
-                    inventory.printInventory();
-                    break;
-
-                case 8:
-                    try {
-                        int productId = ConsoleInput.readInt(scanner, "Enter product ID to find: ");
-
-                        Products found = inventory.findProduct(productId);
-                        System.out.println("Found: " + found);
-                    } catch (NotFoundException e) {
-                        System.out.println("Search error: " + e.getMessage());
-                    }
-                    break;
-
-                case 9:
-                    try {
-                        String section = ConsoleInput.readLine(scanner, "Enter section: ");
-                        int productId = ConsoleInput.readInt(scanner, "Enter product ID: ");
-                        int quantity = ConsoleInput.readInt(scanner, "Enter quantity to restock: ");
-
-                        inventory.restockProduct(section, productId, quantity);
-                        System.out.println("Product restocked successfully.");
-                    } catch (NotFoundException | InvalidQuantityException e) {
-                        System.out.println("Restock error: " + e.getMessage());
-                    }
-                    break;
-
-                case 10:
-                    try {
-                        String section = ConsoleInput.readLine(scanner, "Enter section: ");
-                        int productId = ConsoleInput.readInt(scanner, "Enter product ID: ");
-                        int quantity = ConsoleInput.readInt(scanner, "Enter quantity to decrease: ");
-
-                        inventory.decreaseStock(section, productId, quantity);
-                        System.out.println("Product stock decreased successfully.");
-                    } catch (NotFoundException | InvalidQuantityException e) {
-                        System.out.println("Decrease stock error: " + e.getMessage());
-                    }
-                    break;
-
-                case 11:
-                    int threshold = ConsoleInput.readInt(scanner, "Enter low-stock threshold: ");
-                    List<Products> lowStockProducts = inventory.listLowStock(threshold);
-
-                    if (lowStockProducts.isEmpty()) {
-                        System.out.println("No low-stock products found.");
-                    } else {
-                        System.out.println("Low-stock products:");
-                        for (Products product : lowStockProducts) {
-                            System.out.println(product);
-                        }
-                    }
-                    break;
-
-                case 12:
-                    boolean viewingAisles = true;
-                    while (viewingAisles) {
-                        System.out.println("\nAvailable aisles:");
-                        for (Aisles aisle : aisles) {
-                            System.out.println("- Aisle " + aisle.getAisleNumber() + " (" + aisle.getAisleType() + ")");
-                        }
-                        System.out.println("0. Back to main menu");
-
-                        try {
-                            int selectedAisleNumber = ConsoleInput.readInt(scanner, "Enter aisle number to view: ");
-
-                            if (selectedAisleNumber == 0) {
-                                viewingAisles = false;
-                                continue;
-                            }
-
-                            Aisles selectedAisle = null;
-                            for (Aisles aisle : aisles) {
-                                if (aisle.getAisleNumber() == selectedAisleNumber) {
-                                    selectedAisle = aisle;
-                                    break;
-                                }
-                            }
-
-                            if (selectedAisle == null) {
-                                System.out.println("Aisle not found.");
-                                continue;
-                            }
-
-                            boolean viewingSingleAisle = true;
-                            while (viewingSingleAisle) {
-                                selectedAisle.printAisle();
-                                System.out.println("\n1. Buy from this aisle");
-                                System.out.println("2. Back to aisle list");
-                                int aisleAction = ConsoleInput.readInt(scanner, "Choose an option: ");
-
-                                if (aisleAction == 2) {
-                                    viewingSingleAisle = false;
-                                    continue;
-                                }
-
-                                if (aisleAction != 1) {
-                                    System.out.println("Invalid choice.");
-                                    continue;
-                                }
-
-                                System.out.println("1. Add to regular customer's cart");
-                                System.out.println("2. Add to VIP customer's cart");
-                                int cartOwner = ConsoleInput.readInt(scanner, "Whose cart should this go to? ");
-                                Customer cartCustomer;
-                                if (cartOwner == 1) {
-                                    cartCustomer = customer1;
-                                } else if (cartOwner == 2) {
-                                    cartCustomer = customer2;
-                                } else {
-                                    System.out.println("Invalid choice.");
-                                    continue;
-                                }
-
-                                int productIdToBuy = ConsoleInput.readInt(scanner, "Enter product ID to buy: ");
-                                int quantityToBuy = ConsoleInput.readInt(scanner, "Enter quantity to buy: ");
-
-                                if (quantityToBuy <= 0) {
-                                    System.out.println("Quantity must be greater than 0.");
-                                    continue;
-                                }
-
-                                Products selectedProduct = null;
-                                for (Products product : selectedAisle.getAllProducts()) {
-                                    if (product.getID() == productIdToBuy) {
-                                        selectedProduct = product;
-                                        break;
-                                    }
-                                }
-
-                                if (selectedProduct == null) {
-                                    System.out.println("Product ID not found in this aisle.");
-                                    continue;
-                                }
-
-                                if (selectedProduct.getQuantity() < quantityToBuy) {
-                                    System.out.println("Not enough stock. Available: " + selectedProduct.getQuantity());
-                                    continue;
-                                }
-
-                                selectedProduct.setQuantity(selectedProduct.getQuantity() - quantityToBuy);
-                                for (int i = 0; i < quantityToBuy; i++) {
-                                    cartCustomer.getCart().addItem(selectedProduct.getName());
-                                }
-
-                                System.out.println("Added " + quantityToBuy + " x " + selectedProduct.getName()
-                                        + " to customer " + cartCustomer.getCustomerId() + "'s cart.");
-                            }
-                        } catch (Exception e) {
-                            System.out.println("Invalid input.");
-                        }
-                    }
-                    break;
-
-                case 13:
-                    EmployeeMenu.run(scanner, inventory, customer1, customer2,
+                    StoreMenus.runEmployeeSession(scanner, inventory, aisles, customer1, customer2,
                             produceShelf, dairyShelf, snacksShelf, suppliesShelf);
                     break;
-
-                case 14:
-                    System.out.println("1. Regular customer checkout");
-                    System.out.println("2. VIP customer checkout");
-                    int checkoutChoice = ConsoleInput.readInt(scanner, "Choose customer: ");
-                    if (checkoutChoice == 1) {
-                        Checkout.printReceipt(customer1, inventory, aisles);
-                    } else if (checkoutChoice == 2) {
-                        Checkout.printReceipt(customer2, inventory, aisles);
-                    } else {
-                        System.out.println("Invalid choice.");
-                    }
-                    break;
-
-                case 15:
+                case 4:
                     System.out.println("Thank you for using the Grocery Store System!");
                     break;
-
                 default:
                     System.out.println("Invalid choice. Please try again.");
             }
