@@ -1,6 +1,7 @@
 package cart;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ShoppingCart {
 
@@ -47,6 +48,10 @@ public class ShoppingCart {
 
     public boolean isEmpty() {
         return items.isEmpty();
+    }
+
+    public List<String> getItemsSnapshot() {
+        return new ArrayList<>(items);
     }
 
     public void clearCart() {

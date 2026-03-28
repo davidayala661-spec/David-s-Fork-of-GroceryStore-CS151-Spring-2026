@@ -37,6 +37,10 @@ public abstract class Customer implements Displayable {
         return cart;
     }
 
+    public double getDiscountRate() {
+        return 0.0;
+    }
+
     // for Manager
     public void printCustomerHistory() {
     System.out.println("No purchase history available yet.");

@@ -139,6 +139,20 @@ public class Inventory {
         return matches;
     }
 
+    public Products findProductByExactName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return null;
+        }
+        for (HashMap<Integer, Products> sectionProducts : inventory.values()) {
+            for (Products product : sectionProducts.values()) {
+                if (product.getName().equalsIgnoreCase(name.trim())) {
+                    return product;
+                }
+            }
+        }
+        return null;
+    }
+
     public void printInventory() {
         if (inventory.isEmpty()) {
             System.out.println("Inventory is empty.");

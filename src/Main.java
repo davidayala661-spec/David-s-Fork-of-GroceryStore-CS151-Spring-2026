@@ -1,4 +1,6 @@
 import aisles.Aisles;
+import checkout.Checkout;
+import customers.Customer;
 import customers.RegularCustomer;
 import customers.VIPCustomer;
 import data.StoreDataLoader;
@@ -184,7 +186,7 @@ public class Main {
         // Menu
         int choice = -1;
 
-        while (choice != 14) {
+        while (choice != 15) {
             System.out.println("\n===== Grocery Store Menu =====");
             System.out.println("1. View Regular Customer Info");
             System.out.println("2. View Regular Customer Cart");
@@ -199,7 +201,8 @@ public class Main {
             System.out.println("11. View Low Stock Products");
             System.out.println("12. View Aisles");
             System.out.println("13. Employee Menu");
-            System.out.println("14. Exit");
+            System.out.println("14. Checkout / Print receipt");
+            System.out.println("15. Exit");
             choice = ConsoleInput.readInt(scanner, "Enter your choice: ");
 
             switch (choice) {
@@ -334,6 +337,19 @@ public class Main {
                                     continue;
                                 }
 
+                                System.out.println("1. Add to regular customer's cart");
+                                System.out.println("2. Add to VIP customer's cart");
+                                int cartOwner = ConsoleInput.readInt(scanner, "Whose cart should this go to? ");
+                                Customer cartCustomer;
+                                if (cartOwner == 1) {
+                                    cartCustomer = customer1;
+                                } else if (cartOwner == 2) {
+                                    cartCustomer = customer2;
+                                } else {
+                                    System.out.println("Invalid choice.");
+                                    continue;
+                                }
+
                                 int productIdToBuy = ConsoleInput.readInt(scanner, "Enter product ID to buy: ");
                                 int quantityToBuy = ConsoleInput.readInt(scanner, "Enter quantity to buy: ");
 
@@ -362,10 +378,11 @@ public class Main {
 
                                 selectedProduct.setQuantity(selectedProduct.getQuantity() - quantityToBuy);
                                 for (int i = 0; i < quantityToBuy; i++) {
-                                    customer1.getCart().addItem(selectedProduct.getName());
+                                    cartCustomer.getCart().addItem(selectedProduct.getName());
                                 }
 
-                                System.out.println("Added " + quantityToBuy + " x " + selectedProduct.getName() + " to cart.");
+                                System.out.println("Added " + quantityToBuy + " x " + selectedProduct.getName()
+                                        + " to customer " + cartCustomer.getCustomerId() + "'s cart.");
                             }
                         } catch (Exception e) {
                             System.out.println("Invalid input.");
@@ -379,6 +396,19 @@ public class Main {
                     break;
 
                 case 14:
+                    System.out.println("1. Regular customer checkout");
+                    System.out.println("2. VIP customer checkout");
+                    int checkoutChoice = ConsoleInput.readInt(scanner, "Choose customer: ");
+                    if (checkoutChoice == 1) {
+                        Checkout.printReceipt(customer1, inventory, aisles);
+                    } else if (checkoutChoice == 2) {
+                        Checkout.printReceipt(customer2, inventory, aisles);
+                    } else {
+                        System.out.println("Invalid choice.");
+                    }
+                    break;
+
+                case 15:
                     System.out.println("Thank you for using the Grocery Store System!");
                     break;
 
