@@ -102,6 +102,7 @@ The program starts in the terminal with the grocery store role menu. Type **`EXI
 ## Usage
 
 Video Link: https://www.youtube.com/watch?v=gZQiSIkY_ps
+
 This project simulates a grocery store: **customers** shop (cart, aisles, checkout), and **employees** (stockers and managers) manage shelves and inventory.
 
 ### First launch
