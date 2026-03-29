@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import products.Products;
-import shelf.Shelf;
-
 // Menu templates and information live here so Main stays uncluttered.
 public final class StoreMenus {
 
@@ -240,10 +238,6 @@ public final class StoreMenus {
             List<Aisles> aisles,
             Map<Integer, RegularCustomer> regularCustomers,
             Map<Integer, VIPCustomer> vipCustomers,
-            Shelf produceShelf,
-            Shelf dairyShelf,
-            Shelf snacksShelf,
-            Shelf suppliesShelf,
             Employee signedInEmployee) {
 
         EmployeeMenu.run(
@@ -251,10 +245,6 @@ public final class StoreMenus {
                 inventory,
                 regularCustomers,
                 vipCustomers,
-                produceShelf,
-                dairyShelf,
-                snacksShelf,
-                suppliesShelf,
                 aisles,
                 signedInEmployee
         );

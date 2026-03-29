@@ -1,5 +1,6 @@
 package employee;
 
+import aisles.Aisles;
 import inventory.Inventory;
 import products.Products;
 import shelf.Shelf;
@@ -34,6 +35,22 @@ public class Stocker extends Employee {
 
     public void viewLowShelfStock(Shelf shelf, int threshold) {
         shelf.printLowStock(threshold); // print low stock products in the shelf
+    }
+
+    public void viewLowAisleShelfStock(Aisles aisle, int shelfNumber, int threshold) {
+        System.out.println("Low stock on Aisle " + aisle.getAisleNumber() + " (" + aisle.getAisleType()
+                + "), shelf " + shelfNumber + ":");
+        boolean any = false;
+        for (Products product : aisle.getProductsOnShelf(shelfNumber)) {
+            if (product.getQuantity() < threshold) {
+                any = true;
+                System.out.println("- " + product.getName() + " (ID: " + product.getID()
+                        + ", Stock: " + product.getQuantity() + ")");
+            }
+        }
+        if (!any) {
+            System.out.println("(No products below threshold.)");
+        }
     }
 
 }

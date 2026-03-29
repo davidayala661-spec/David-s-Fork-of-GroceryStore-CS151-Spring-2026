@@ -8,6 +8,11 @@ import employee.EmployeeIdRegistry;
 import employee.Manager;
 import employee.Stocker;
 import exceptions.CapacityExceededException;
+import exceptions.DuplicateProductException;
+import exceptions.InvalidPriceException;
+import exceptions.InvalidProductException;
+import exceptions.InvalidQuantityException;
+import exceptions.InvalidSectionException;
 import input.ConsoleInput;
 import inventory.Inventory;
 import java.util.HashMap;
@@ -15,8 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import menu.StoreMenus;
-import products.Products;
-import shelf.Shelf;
 
 // main contains unity of all of the classes and functions.
 public class Main {
@@ -36,40 +39,12 @@ public class Main {
         System.out.println("   Welcome to the Grocery Store  ");
         System.out.println("=================================");
 
-        // Preload shelves
-        Shelf produceShelf = new Shelf("Produce");
-        Shelf dairyShelf = new Shelf("Dairy");
-        Shelf snacksShelf = new Shelf("Snacks");
-        Shelf suppliesShelf = new Shelf("Supplies");
-
-        // Preload inventory and shelves with exception handling
+        // Back-room inventory: one stock pool per aisle SKU (separate from floor stock on shelves)
         try {
-            inventory.addProduct("Produce", new Products("Apples", 1.99, 20, 1001));
-            inventory.addProduct("Dairy", new Products("Milk", 3.49, 8, 1002));
-            inventory.addProduct("Snacks", new Products("Chips", 2.99, 5, 1003));
-            inventory.addProduct("Supplies", new Products("Rice", 10.99, 50, 1004));
-            inventory.addProduct("Produce", new Products("Mango", 1.99, 70, 1005));
-            inventory.addProduct("Produce", new Products("Onion", 2.99, 100, 1006));
-            System.out.println("Inventory preloaded successfully.");
-
-            Products apples = inventory.getProduct("Produce", 1001);
-            Products mango = inventory.getProduct("Produce", 1005);
-            Products onion = inventory.getProduct("Produce", 1006);
-
-            produceShelf.addProduct(new Products(apples.getName(), apples.getPrice(), 2, apples.getID()));
-            produceShelf.addProduct(new Products(mango.getName(), mango.getPrice(), 7, mango.getID()));
-            produceShelf.addProduct(new Products(onion.getName(), onion.getPrice(), 10, onion.getID()));
-
-            Products milk = inventory.getProduct("Dairy", 1002);
-            dairyShelf.addProduct(new Products(milk.getName(), milk.getPrice(), 3, milk.getID()));
-
-            Products chips = inventory.getProduct("Snacks", 1003);
-            snacksShelf.addProduct(new Products(chips.getName(), chips.getPrice(), 2, chips.getID()));
-
-            Products rice = inventory.getProduct("Supplies", 1004);
-            suppliesShelf.addProduct(new Products(rice.getName(), rice.getPrice(), 9, rice.getID()));
-
-        } catch (CapacityExceededException e) {
+            StoreDataLoader.loadBackRoomInventory(inventory, aisles, 50);
+            System.out.println("Back-room inventory loaded successfully.");
+        } catch (CapacityExceededException | InvalidSectionException | InvalidProductException
+                | DuplicateProductException | InvalidPriceException | InvalidQuantityException e) {
             System.out.println("Setup error: " + e.getMessage());
         }
 
@@ -92,8 +67,7 @@ public class Main {
                     break;
                 case 3:
                     handleEmployeePortal(scanner, employees, inventory, aisles,
-                            regularCustomers, vipCustomers,
-                            produceShelf, dairyShelf, snacksShelf, suppliesShelf);
+                            regularCustomers, vipCustomers);
                     break;
                 case 4:
                     System.out.println("Thank you for using the Grocery Store System!");
@@ -173,8 +147,7 @@ public class Main {
             Map<Integer, Employee> employees,
             Inventory inventory, List<Aisles> aisles,
             Map<Integer, RegularCustomer> regularCustomers,
-            Map<Integer, VIPCustomer> vipCustomers,
-            Shelf produceShelf, Shelf dairyShelf, Shelf snacksShelf, Shelf suppliesShelf) {
+            Map<Integer, VIPCustomer> vipCustomers) {
 
         int choice = -1;
         while (choice != 3) {
@@ -189,7 +162,6 @@ public class Main {
                     Employee newEmployee = registerEmployee(scanner, employees);
                     StoreMenus.runEmployeeSession(scanner, inventory, aisles,
                             regularCustomers, vipCustomers,
-                            produceShelf, dairyShelf, snacksShelf, suppliesShelf,
                             newEmployee);
                     break;
                 case 2:
@@ -197,7 +169,6 @@ public class Main {
                     if (signedInEmployee != null) {
                         StoreMenus.runEmployeeSession(scanner, inventory, aisles,
                                 regularCustomers, vipCustomers,
-                                produceShelf, dairyShelf, snacksShelf, suppliesShelf,
                                 signedInEmployee);
                     }
                     break;

@@ -8,11 +8,12 @@ import exceptions.InvalidQuantityException;
 import exceptions.NotFoundException;
 import input.ConsoleInput;
 import inventory.Inventory;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import products.Products;
-import shelf.Shelf;
 
 public final class EmployeeMenu {
 
@@ -24,10 +25,6 @@ public final class EmployeeMenu {
             Inventory inventory,
             Map<Integer, RegularCustomer> regularCustomers,
             Map<Integer, VIPCustomer> vipCustomers,
-            Shelf produceShelf,
-            Shelf dairyShelf,
-            Shelf snacksShelf,
-            Shelf suppliesShelf,
             List<Aisles> aisles,
             Employee signedInEmployee) {
 
@@ -37,8 +34,7 @@ public final class EmployeeMenu {
                 + ", " + signedInEmployee.getDepartment() + ")");
 
         if (signedInEmployee instanceof Stocker stocker) {
-            runStockerMenu(scanner, inventory, produceShelf, dairyShelf,
-                    snacksShelf, suppliesShelf, aisles, stocker);
+            runStockerMenu(scanner, inventory, aisles, stocker);
         } else if (signedInEmployee instanceof Manager manager) {
             runManagerMenu(scanner, inventory, regularCustomers, vipCustomers,
                     manager);
@@ -50,10 +46,6 @@ public final class EmployeeMenu {
     private static void runStockerMenu(
             Scanner scanner,
             Inventory inventory,
-            Shelf produceShelf,
-            Shelf dairyShelf,
-            Shelf snacksShelf,
-            Shelf suppliesShelf,
             List<Aisles> aisles,
             Stocker stocker) {
 
@@ -76,16 +68,16 @@ public final class EmployeeMenu {
 
             switch (stockerInput) {
                 case 1:
-                    Shelf selectedShelf = chooseShelf(scanner, produceShelf, dairyShelf,
-                            snacksShelf, suppliesShelf);
-                    if (selectedShelf != null) {
+                    AisleShelfPick pickLow = pickAisleShelf(scanner, aisles);
+                    if (pickLow != null) {
                         lowStockThreshold = ConsoleInput.readInt(
                                 scanner, "Enter low-stock threshold: ");
 
                         System.out.println();
-                        stocker.viewLowShelfStock(selectedShelf, lowStockThreshold);
+                        stocker.viewLowAisleShelfStock(
+                                pickLow.aisle(), pickLow.shelfNumber(), lowStockThreshold);
 
-                        for (Products product : selectedShelf.getProducts()) {
+                        for (Products product : pickLow.aisle().getProductsOnShelf(pickLow.shelfNumber())) {
                             if (product.getQuantity() < lowStockThreshold) {
                                 System.out.println(product.getName() + " needs "
                                         + (lowStockThreshold - product.getQuantity())
@@ -96,26 +88,36 @@ public final class EmployeeMenu {
                     break;
 
                 case 2:
-                    Shelf selectedRestockShelf = chooseShelf(scanner, produceShelf, dairyShelf,
-                            snacksShelf, suppliesShelf);
-                    if (selectedRestockShelf == null) {
+                    AisleShelfPick pickRestock = pickAisleShelf(scanner, aisles);
+                    if (pickRestock == null) {
                         break;
                     }
 
-                    if (selectedRestockShelf.getProducts().isEmpty()) {
+                    String aisleSection = pickRestock.aisle().getAisleType();
+
+                    List<Products> shelfProducts = new ArrayList<>(
+                            pickRestock.aisle().getProductsOnShelf(pickRestock.shelfNumber()));
+
+                    if (shelfProducts.isEmpty()) {
                         System.out.println("This shelf is empty.");
                         break;
                     }
 
                     System.out.println();
-                    System.out.println("Reminder " + lowStockThreshold + " is the max.");
-                    System.out.println("Products on " + selectedRestockShelf.getSection() + " shelf:");
+                    System.out.println("Move stock from back-room inventory onto this shelf.");
+                    System.out.println("Shelf max per item: " + lowStockThreshold + ".");
+                    System.out.println("Products on Aisle " + pickRestock.aisle().getAisleNumber()
+                            + " (" + aisleSection + "), shelf "
+                            + pickRestock.shelfNumber() + ":");
 
                     int itemNumber = 1;
-                    for (Products product : selectedRestockShelf.getProducts()) {
+                    for (Products product : shelfProducts) {
+                        Products backRoom = inventory.getProduct(aisleSection, product.getID());
+                        int backQty = backRoom != null ? backRoom.getQuantity() : 0;
                         System.out.println(itemNumber + ". " + product.getName()
                                 + " (ID: " + product.getID()
-                                + ", Current Stock: " + product.getQuantity() + ")");
+                                + ", on shelf: " + product.getQuantity()
+                                + ", back room: " + backQty + ")");
                         itemNumber++;
                     }
 
@@ -123,13 +125,8 @@ public final class EmployeeMenu {
                             scanner, "Choose product to restock: ");
 
                     Products chosenProduct = null;
-                    int currentIndex = 1;
-                    for (Products product : selectedRestockShelf.getProducts()) {
-                        if (currentIndex == productChoice) {
-                            chosenProduct = product;
-                            break;
-                        }
-                        currentIndex++;
+                    if (productChoice >= 1 && productChoice <= shelfProducts.size()) {
+                        chosenProduct = shelfProducts.get(productChoice - 1);
                     }
 
                     if (chosenProduct == null) {
@@ -137,64 +134,64 @@ public final class EmployeeMenu {
                         break;
                     }
 
+                    Products backRoomProduct = inventory.getProduct(aisleSection, chosenProduct.getID());
+                    if (backRoomProduct == null) {
+                        System.out.println("No back-room inventory for this product ID in section "
+                                + aisleSection + ".");
+                        break;
+                    }
+
                     int restockAmount = ConsoleInput.readInt(
-                            scanner, "Enter quantity to restock: ");
+                            scanner, "Enter quantity to move from back room to shelf: ");
 
                     if (restockAmount <= 0) {
                         System.out.println("Quantity must be greater than 0.");
                         break;
                     }
 
-                    int newQuantity = chosenProduct.getQuantity() + restockAmount;
-                    if (newQuantity > lowStockThreshold) {
-                        System.out.println("Error: restock amount exceeds threshold of "
-                                + lowStockThreshold + ".");
-                        System.out.println(chosenProduct.getName()
-                                + " would become " + newQuantity + " in stock.");
+                    if (backRoomProduct.getQuantity() < restockAmount) {
+                        System.out.println("Not enough back-room stock. Available: "
+                                + backRoomProduct.getQuantity());
+                        break;
+                    }
+
+                    int newShelfQty = chosenProduct.getQuantity() + restockAmount;
+                    if (newShelfQty > lowStockThreshold) {
+                        System.out.println("Error: shelf would exceed max of " + lowStockThreshold + ".");
+                        System.out.println(chosenProduct.getName() + " would have " + newShelfQty
+                                + " on the shelf.");
                         break;
                     }
 
                     try {
+                        inventory.decreaseStock(aisleSection, chosenProduct.getID(), restockAmount);
                         chosenProduct.stockToShelf(restockAmount);
-                        System.out.println("Restocked successfully.");
-                        System.out.println(chosenProduct.getName() + " now has "
-                                + chosenProduct.getQuantity() + " on the shelf.");
-                    } catch (InvalidQuantityException e) {
+                        System.out.println("Restocked successfully (moved from inventory to shelf).");
+                        System.out.println(chosenProduct.getName() + " — shelf: "
+                                + chosenProduct.getQuantity() + ", back room: "
+                                + inventory.getProduct(aisleSection, chosenProduct.getID()).getQuantity());
+                    } catch (NotFoundException | InvalidQuantityException e) {
                         System.out.println("Restock error: " + e.getMessage());
                     }
                     break;
 
                 case 3:
-                    int viewChoice = chooseShelfOrAll(scanner);
-                    switch (viewChoice) {
-                        case 1:
-                            produceShelf.printShelf();
-                            break;
-                        case 2:
-                            dairyShelf.printShelf();
-                            break;
-                        case 3:
-                            snacksShelf.printShelf();
-                            break;
-                        case 4:
-                            suppliesShelf.printShelf();
-                            break;
-                        case 5:
-                            System.out.println("\n--- Produce Shelf ---");
-                            produceShelf.printShelf();
-
-                            System.out.println("\n--- Dairy Shelf ---");
-                            dairyShelf.printShelf();
-
-                            System.out.println("\n--- Snacks Shelf ---");
-                            snacksShelf.printShelf();
-
-                            System.out.println("\n--- Supplies Shelf ---");
-                            suppliesShelf.printShelf();
-                            break;
-                        default:
-                            System.out.println("Invalid shelf choice.");
-                            break;
+                    System.out.println();
+                    System.out.println("1. View one aisle shelf");
+                    System.out.println("2. View all aisles");
+                    int viewMode = ConsoleInput.readInt(scanner, "Enter choice: ");
+                    if (viewMode == 1) {
+                        AisleShelfPick pickView = pickAisleShelf(scanner, aisles);
+                        if (pickView != null) {
+                            printAisleShelfProducts(pickView.aisle(), pickView.shelfNumber());
+                        }
+                    } else if (viewMode == 2) {
+                        for (Aisles aisle : aisles) {
+                            aisle.printAisle();
+                            System.out.println();
+                        }
+                    } else {
+                        System.out.println("Invalid choice.");
                     }
                     break;
 
@@ -558,43 +555,56 @@ public final class EmployeeMenu {
         manager.viewCustomerHistory(selectedCustomer);
     }
 
-    private static Shelf chooseShelf(
-            Scanner scanner,
-            Shelf produceShelf,
-            Shelf dairyShelf,
-            Shelf snacksShelf,
-            Shelf suppliesShelf) {
-
-        System.out.println("1. Produce");
-        System.out.println("2. Dairy");
-        System.out.println("3. Snacks");
-        System.out.println("4. Supplies");
-        int sectionChoice = ConsoleInput.readInt(scanner, "Enter section to check: ");
-
-        switch (sectionChoice) {
-            case 1:
-                return produceShelf;
-            case 2:
-                return dairyShelf;
-            case 3:
-                return snacksShelf;
-            case 4:
-                return suppliesShelf;
-            default:
-                System.out.println("Invalid shelf.");
-                return null;
-        }
+    private record AisleShelfPick(Aisles aisle, int shelfNumber) {
     }
 
-    private static int chooseShelfOrAll(Scanner scanner) {
+    private static AisleShelfPick pickAisleShelf(Scanner scanner, List<Aisles> aisles) {
         System.out.println();
-        System.out.println("Choose a shelf to view:");
-        System.out.println("1. Produce");
-        System.out.println("2. Dairy");
-        System.out.println("3. Snacks");
-        System.out.println("4. Supplies");
-        System.out.println("5. Print All Shelves");
-        return ConsoleInput.readInt(scanner, "Enter choice: ");
+        System.out.println("Aisles:");
+        for (Aisles a : aisles) {
+            System.out.println("  " + a.getAisleNumber() + ". Aisle " + a.getAisleNumber()
+                    + " (" + a.getAisleType() + ")");
+        }
+        int aisleNum = ConsoleInput.readInt(scanner, "Enter aisle number: ");
+        Aisles selected = null;
+        for (Aisles a : aisles) {
+            if (a.getAisleNumber() == aisleNum) {
+                selected = a;
+                break;
+            }
+        }
+        if (selected == null) {
+            System.out.println("Aisle not found.");
+            return null;
+        }
+        List<Integer> shelfNums = new ArrayList<>(selected.getShelves().keySet());
+        Collections.sort(shelfNums);
+        if (shelfNums.isEmpty()) {
+            System.out.println("That aisle has no shelves.");
+            return null;
+        }
+        System.out.println("Shelf numbers in this aisle: " + shelfNums);
+        int shelfNum = ConsoleInput.readInt(scanner, "Enter shelf number: ");
+        if (!selected.getShelves().containsKey(shelfNum)) {
+            System.out.println("Shelf not found.");
+            return null;
+        }
+        return new AisleShelfPick(selected, shelfNum);
+    }
+
+    private static void printAisleShelfProducts(Aisles aisle, int shelfNumber) {
+        System.out.println();
+        System.out.println("Aisle " + aisle.getAisleNumber() + " (" + aisle.getAisleType()
+                + "), shelf " + shelfNumber + ":");
+        List<Products> products = aisle.getProductsOnShelf(shelfNumber);
+        if (products.isEmpty()) {
+            System.out.println("This shelf is empty.");
+            return;
+        }
+        for (Products p : products) {
+            System.out.println("- " + p.getName() + " (ID: " + p.getID() + ", Price: $"
+                    + p.getPrice() + ", Stock: " + p.getQuantity() + ")");
+        }
     }
 
     private static String chooseInventorySection(Scanner scanner) {

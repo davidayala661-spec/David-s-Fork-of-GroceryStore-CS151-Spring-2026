@@ -89,4 +89,21 @@ public class StoreDataLoader {
             }
         }
     }
+
+    public static void loadBackRoomInventory(Inventory inventory, List<Aisles> aisles, int unitsPerSku)
+            throws CapacityExceededException, InvalidSectionException,
+                   InvalidProductException, DuplicateProductException, InvalidPriceException,
+                   InvalidQuantityException {
+        for (Aisles aisle : aisles) {
+            String section = aisle.getAisleType();
+            for (Products shelfProduct : aisle.getAllProducts()) {
+                Products backRoom = new Products(
+                        shelfProduct.getName(),
+                        shelfProduct.getPrice(),
+                        unitsPerSku,
+                        shelfProduct.getID());
+                inventory.addProduct(section, backRoom);
+            }
+        }
+    }
 }
