@@ -97,11 +97,18 @@ After **Maven**, compiled classes are under `target/classes`. From the project r
 java -cp target/classes Main
 ```
 
+# 4. JUnit Testing
+To run our comprehensive list of test cases located within the test/ directory.
+
+```bash
+mvn test
+```
+
 The program starts in the terminal with the grocery store role menu. Type **`EXIT`** at any prompt to quit immediately (case-insensitive).
 
 ## Usage
 
-Video Link: https://www.youtube.com/watch?v=gZQiSIkY_ps
+Video Link: <https://youtu.be/mOjd7YAnYNI>
 
 This project simulates a grocery store: **customers** shop (cart, aisles, checkout), and **employees** (stockers and managers) manage shelves and inventory.
 
