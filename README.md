@@ -172,10 +172,17 @@ Opens the **Employee menu** (`EmployeeMenu`): choose **Stocker** or **Manager**,
 - Organized the the menu/UI grocery store simulation: ensured the menus had proper flow into eachother and all methods were accesible through terminal. - Completed **aisles** with shelf stock and shopping,
 - Completed the DataLoader to organize main, started the Foundation for products.
 - Completed the saftely EXIT extra credit.
+- edited the demo video
+- Worked on multiple menus to be more visually appealing
+- Connected Aisle functionality with restocking
 
 
 **Vishalkiran Raichur**
-
+- UML diagram
+- Cutomer methods and logic 
+- VIP customer
+- shopping cart
+- checkout
 
 
 
