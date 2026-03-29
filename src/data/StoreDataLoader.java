@@ -18,11 +18,35 @@ public class StoreDataLoader {
     private static final int DEFAULT_PRODUCTS_PER_SHELF = 5;
     private static final int STARTING_PRODUCT_ID = 1000;
     private static final int MAX_QUANTITY = 10;
+    private static final int DEFAULT_BACK_ROOM_UNITS_PER_SKU = 50;
+
+    /** Max units of one product on an aisle shelf (matches {@link #loadDefaultAisles()}). */
+    public static int getMaxShelfQuantityPerProduct() {
+        return MAX_QUANTITY;
+    }
+
 /*Aisle examples, 
   Aisles have 3 shelves, and each shelf has 5 products.
   Products on a shelf are allowed to be up to 10 in quantity.
   */  
- private static final String[] AISLE_TYPES = {"Dairy", "Fruits", "Meats"};
+    public static final String[] AISLE_SECTION_NAMES = {"Dairy", "Fruits", "Meats"};
+
+    public static boolean isAisleInventorySection(String section) {
+        if (section == null || section.trim().isEmpty()) {
+            return false;
+        }
+        String t = section.trim();
+        for (String name : AISLE_SECTION_NAMES) {
+            if (name.equalsIgnoreCase(t)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static String[] getAisleSectionNames() {
+        return AISLE_SECTION_NAMES.clone();
+    }
 
     private static final String[][] AISLE_PRODUCTS = {
             {"Milk", "Cheese", "Yogurt", "Butter", "Cream",
@@ -50,7 +74,7 @@ public class StoreDataLoader {
         int nextProductId = STARTING_PRODUCT_ID;
 
         for (int aisleNumber = 1; aisleNumber <= DEFAULT_AISLE_COUNT; aisleNumber++) {
-            String aisleType = AISLE_TYPES[aisleNumber - 1];
+            String aisleType = AISLE_SECTION_NAMES[aisleNumber - 1];
             Aisles aisle = new Aisles(aisleType, aisleNumber);
 
             for (int shelfNumber = 1; shelfNumber <= DEFAULT_SHELVES_PER_AISLE; shelfNumber++) {
@@ -105,5 +129,12 @@ public class StoreDataLoader {
                 inventory.addProduct(section, backRoom);
             }
         }
+    }
+
+    public static void preloadStoreInventory(Inventory inventory, List<Aisles> aisles)
+            throws CapacityExceededException, InvalidSectionException,
+                   InvalidProductException, DuplicateProductException, InvalidPriceException,
+                   InvalidQuantityException {
+        loadBackRoomInventory(inventory, aisles, DEFAULT_BACK_ROOM_UNITS_PER_SKU);
     }
 }

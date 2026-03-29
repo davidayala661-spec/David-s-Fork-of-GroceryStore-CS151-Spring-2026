@@ -39,9 +39,8 @@ public class Main {
         System.out.println("   Welcome to the Grocery Store  ");
         System.out.println("=================================");
 
-        // Back-room inventory: one stock pool per aisle SKU (separate from floor stock on shelves)
         try {
-            StoreDataLoader.loadBackRoomInventory(inventory, aisles, 50);
+            StoreDataLoader.preloadStoreInventory(inventory, aisles);
             System.out.println("Back-room inventory loaded successfully.");
         } catch (CapacityExceededException | InvalidSectionException | InvalidProductException
                 | DuplicateProductException | InvalidPriceException | InvalidQuantityException e) {

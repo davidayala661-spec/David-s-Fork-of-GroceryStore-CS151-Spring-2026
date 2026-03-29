@@ -41,6 +41,13 @@ public class StoreDataLoaderTest {
     }
 
     @Test
+    void getAisleSectionNamesShouldMatchAisleTypes() {
+        assertArrayEquals(
+                new String[] {"Dairy", "Fruits", "Meats"},
+                StoreDataLoader.getAisleSectionNames());
+    }
+
+    @Test
     void loadAislesIntoInventoryShouldLoadAllProducts() throws Exception {
         Inventory inventory = new Inventory();
         List<Aisles> aisles = StoreDataLoader.loadDefaultAisles();

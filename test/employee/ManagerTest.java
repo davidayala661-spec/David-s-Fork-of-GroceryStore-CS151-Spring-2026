@@ -49,12 +49,33 @@ public class ManagerTest {
     @Test
     void addProductShouldReturnFalseWhenCapacityExceeded() throws CapacityExceededException {
         for (int i = 0; i < 100; i++) {
-            inventory.addProduct("Section", new Products("Item" + i, 1.0, 1, 2000 + i));
+            inventory.addProduct("Dairy", new Products("Item" + i, 1.0, 1, 2000 + i));
         }
 
-        boolean added = manager.addProduct(inventory, "Section", new Products("Overflow", 1.0, 1, 9999));
+        boolean added = manager.addProduct(inventory, "Dairy", new Products("Overflow", 1.0, 1, 9999));
 
         assertFalse(added);
+    }
+
+    @Test
+    void addProductShouldReturnFalseForNonAisleSection() throws CapacityExceededException {
+        Products product = new Products("Apples", 1.99, 5, 5001);
+        assertFalse(manager.addProduct(inventory, "Produce", product));
+        assertNull(inventory.getProduct("Produce", 5001));
+    }
+
+    @Test
+    void changePriceShouldRejectNonAisleSection() throws CapacityExceededException {
+        inventory.addProduct("Snacks", new Products("Chips", 2.99, 5, 3003));
+        manager.changePrice(inventory, "Snacks", 3003, 3.49);
+        assertEquals(2.99, inventory.getProduct("Snacks", 3003).getPrice());
+    }
+
+    @Test
+    void removeProductShouldRejectNonAisleSection() throws CapacityExceededException {
+        inventory.addProduct("Snacks", new Products("Chips", 2.99, 5, 3003));
+        manager.removeProduct(inventory, "Snacks", 3003);
+        assertNotNull(inventory.getProduct("Snacks", 3003));
     }
 
     @Test

@@ -2,6 +2,7 @@ package employee;
 
 import aisles.Aisles;
 import customers.Customer;
+import data.StoreDataLoader;
 import customers.RegularCustomer;
 import customers.VIPCustomer;
 import exceptions.InvalidQuantityException;
@@ -16,6 +17,8 @@ import java.util.Scanner;
 import products.Products;
 
 public final class EmployeeMenu {
+
+    private static final int MANAGER_SHELF_RESTOCK_CAP = 10;
 
     private EmployeeMenu() {
     }
@@ -36,7 +39,7 @@ public final class EmployeeMenu {
         if (signedInEmployee instanceof Stocker stocker) {
             runStockerMenu(scanner, inventory, aisles, stocker);
         } else if (signedInEmployee instanceof Manager manager) {
-            runManagerMenu(scanner, inventory, regularCustomers, vipCustomers,
+            runManagerMenu(scanner, inventory, regularCustomers, vipCustomers, aisles,
                     manager);
         } else {
             System.out.println("Unknown employee type.");
@@ -52,7 +55,7 @@ public final class EmployeeMenu {
         System.out.println("Welcome, Stocker! You can view low stock products and restock shelves.");
 
         int stockerInput = -1;
-        int lowStockThreshold = 10;
+        int lowStockThreshold = StoreDataLoader.getMaxShelfQuantityPerProduct();
 
         while (stockerInput != 7) {
             System.out.println();
@@ -88,91 +91,7 @@ public final class EmployeeMenu {
                     break;
 
                 case 2:
-                    AisleShelfPick pickRestock = pickAisleShelf(scanner, aisles);
-                    if (pickRestock == null) {
-                        break;
-                    }
-
-                    String aisleSection = pickRestock.aisle().getAisleType();
-
-                    List<Products> shelfProducts = new ArrayList<>(
-                            pickRestock.aisle().getProductsOnShelf(pickRestock.shelfNumber()));
-
-                    if (shelfProducts.isEmpty()) {
-                        System.out.println("This shelf is empty.");
-                        break;
-                    }
-
-                    System.out.println();
-                    System.out.println("Move stock from back-room inventory onto this shelf.");
-                    System.out.println("Shelf max per item: " + lowStockThreshold + ".");
-                    System.out.println("Products on Aisle " + pickRestock.aisle().getAisleNumber()
-                            + " (" + aisleSection + "), shelf "
-                            + pickRestock.shelfNumber() + ":");
-
-                    int itemNumber = 1;
-                    for (Products product : shelfProducts) {
-                        Products backRoom = inventory.getProduct(aisleSection, product.getID());
-                        int backQty = backRoom != null ? backRoom.getQuantity() : 0;
-                        System.out.println(itemNumber + ". " + product.getName()
-                                + " (ID: " + product.getID()
-                                + ", on shelf: " + product.getQuantity()
-                                + ", back room: " + backQty + ")");
-                        itemNumber++;
-                    }
-
-                    int productChoice = ConsoleInput.readInt(
-                            scanner, "Choose product to restock: ");
-
-                    Products chosenProduct = null;
-                    if (productChoice >= 1 && productChoice <= shelfProducts.size()) {
-                        chosenProduct = shelfProducts.get(productChoice - 1);
-                    }
-
-                    if (chosenProduct == null) {
-                        System.out.println("Invalid product choice.");
-                        break;
-                    }
-
-                    Products backRoomProduct = inventory.getProduct(aisleSection, chosenProduct.getID());
-                    if (backRoomProduct == null) {
-                        System.out.println("No back-room inventory for this product ID in section "
-                                + aisleSection + ".");
-                        break;
-                    }
-
-                    int restockAmount = ConsoleInput.readInt(
-                            scanner, "Enter quantity to move from back room to shelf: ");
-
-                    if (restockAmount <= 0) {
-                        System.out.println("Quantity must be greater than 0.");
-                        break;
-                    }
-
-                    if (backRoomProduct.getQuantity() < restockAmount) {
-                        System.out.println("Not enough back-room stock. Available: "
-                                + backRoomProduct.getQuantity());
-                        break;
-                    }
-
-                    int newShelfQty = chosenProduct.getQuantity() + restockAmount;
-                    if (newShelfQty > lowStockThreshold) {
-                        System.out.println("Error: shelf would exceed max of " + lowStockThreshold + ".");
-                        System.out.println(chosenProduct.getName() + " would have " + newShelfQty
-                                + " on the shelf.");
-                        break;
-                    }
-
-                    try {
-                        inventory.decreaseStock(aisleSection, chosenProduct.getID(), restockAmount);
-                        chosenProduct.stockToShelf(restockAmount);
-                        System.out.println("Restocked successfully (moved from inventory to shelf).");
-                        System.out.println(chosenProduct.getName() + " — shelf: "
-                                + chosenProduct.getQuantity() + ", back room: "
-                                + inventory.getProduct(aisleSection, chosenProduct.getID()).getQuantity());
-                    } catch (NotFoundException | InvalidQuantityException e) {
-                        System.out.println("Restock error: " + e.getMessage());
-                    }
+                    runAisleShelfRestockFromBackRoom(scanner, inventory, aisles, lowStockThreshold);
                     break;
 
                 case 3:
@@ -232,6 +151,7 @@ public final class EmployeeMenu {
             Inventory inventory,
             Map<Integer, RegularCustomer> regularCustomers,
             Map<Integer, VIPCustomer> vipCustomers,
+            List<Aisles> aisles,
             Manager manager) {
 
         System.out.println("Welcome, Manager! You can manage inventory and view customer history.");
@@ -244,7 +164,7 @@ public final class EmployeeMenu {
             System.out.println("1. Add Product to Inventory");
             System.out.println("2. Remove Product from Inventory");
             System.out.println("3. Change Product Price");
-            System.out.println("4. Restock Inventory Products");
+            System.out.println("4. Restock shelf from back-room inventory");
             System.out.println("5. View Inventory");
             System.out.println("6. View Customer Info");
             System.out.println("7. Find product by ID");
@@ -265,7 +185,7 @@ public final class EmployeeMenu {
                     break;
 
                 case 4:
-                    handleRestockInventory(scanner, inventory);
+                    handleRestockInventory(scanner, inventory, aisles);
                     break;
 
                 case 5:
@@ -307,6 +227,10 @@ public final class EmployeeMenu {
         if (section.isEmpty()) {
             return;
         }
+        if (!StoreDataLoader.isAisleInventorySection(section)) {
+            System.out.println("Managers can only work with Dairy, Fruits, or Meats (store aisles).");
+            return;
+        }
 
         boolean done = false;
         while (!done) {
@@ -345,6 +269,10 @@ public final class EmployeeMenu {
         System.out.println();
         String section = chooseInventorySection(scanner);
         if (section.isEmpty()) {
+            return;
+        }
+        if (!StoreDataLoader.isAisleInventorySection(section)) {
+            System.out.println("Managers can only work with Dairy, Fruits, or Meats (store aisles).");
             return;
         }
 
@@ -411,6 +339,10 @@ public final class EmployeeMenu {
         if (section.isEmpty()) {
             return;
         }
+        if (!StoreDataLoader.isAisleInventorySection(section)) {
+            System.out.println("Managers can only work with Dairy, Fruits, or Meats (store aisles).");
+            return;
+        }
 
         System.out.println();
         boolean hasProducts = inventory.printSectionProducts(section);
@@ -457,62 +389,104 @@ public final class EmployeeMenu {
 
     private static void handleRestockInventory(
             Scanner scanner,
-            Inventory inventory) {
-
+            Inventory inventory,
+            List<Aisles> aisles) {
+        System.out.println("Same aisles and shelves as the store floor (loaded by StoreDataLoader).");
         System.out.println();
-        String section = chooseInventorySection(scanner);
-        if (section.isEmpty()) {
+        runAisleShelfRestockFromBackRoom(scanner, inventory, aisles,
+                StoreDataLoader.getMaxShelfQuantityPerProduct());
+    }
+
+    private static void runAisleShelfRestockFromBackRoom(
+            Scanner scanner,
+            Inventory inventory,
+            List<Aisles> aisles,
+            int shelfMaxPerItem) {
+
+        AisleShelfPick pickRestock = pickAisleShelf(scanner, aisles);
+        if (pickRestock == null) {
+            return;
+        }
+
+        String aisleSection = pickRestock.aisle().getAisleType();
+
+        List<Products> shelfProducts = new ArrayList<>(
+                pickRestock.aisle().getProductsOnShelf(pickRestock.shelfNumber()));
+
+        if (shelfProducts.isEmpty()) {
+            System.out.println("This shelf is empty.");
             return;
         }
 
         System.out.println();
-        boolean hasProducts = inventory.printSectionProducts(section);
-        if (!hasProducts) {
+        System.out.println("Move stock from back-room inventory onto this shelf.");
+        System.out.println("Shelf max per item: " + shelfMaxPerItem + ".");
+        System.out.println("Products on Aisle " + pickRestock.aisle().getAisleNumber()
+                + " (" + aisleSection + "), shelf "
+                + pickRestock.shelfNumber() + ":");
+
+        int itemNumber = 1;
+        for (Products product : shelfProducts) {
+            Products backRoom = inventory.getProduct(aisleSection, product.getID());
+            int backQty = backRoom != null ? backRoom.getQuantity() : 0;
+            System.out.println(itemNumber + ". " + product.getName()
+                    + " (ID: " + product.getID()
+                    + ", on shelf: " + product.getQuantity()
+                    + ", back room: " + backQty + ")");
+            itemNumber++;
+        }
+
+        int productChoice = ConsoleInput.readInt(
+                scanner, "Choose product to restock: ");
+
+        Products chosenProduct = null;
+        if (productChoice >= 1 && productChoice <= shelfProducts.size()) {
+            chosenProduct = shelfProducts.get(productChoice - 1);
+        }
+
+        if (chosenProduct == null) {
+            System.out.println("Invalid product choice.");
             return;
         }
 
-        boolean done = false;
-        while (!done) {
-            try {
-                int productId = ConsoleInput.readInt(
-                        scanner, "Enter product ID (0 to cancel): ");
+        Products backRoomProduct = inventory.getProduct(aisleSection, chosenProduct.getID());
+        if (backRoomProduct == null) {
+            System.out.println("No back-room inventory for this product ID in section "
+                    + aisleSection + ".");
+            return;
+        }
 
-                if (productId == 0) {
-                    System.out.println("Cancelled.");
-                    break;
-                }
+        int restockAmount = ConsoleInput.readInt(
+                scanner, "Enter quantity to move from back room to shelf: ");
 
-                Products product = inventory.getProduct(section, productId);
-                if (product == null) {
-                    System.out.println("Error: product ID not found in " + section + ".");
-                    continue;
-                }
+        if (restockAmount <= 0) {
+            System.out.println("Quantity must be greater than 0.");
+            return;
+        }
 
-                int quantityToRestock = ConsoleInput.readInt(
-                        scanner, "Enter quantity to restock (0 to cancel): ");
+        if (backRoomProduct.getQuantity() < restockAmount) {
+            System.out.println("Not enough back-room stock. Available: "
+                    + backRoomProduct.getQuantity());
+            return;
+        }
 
-                if (quantityToRestock == 0) {
-                    System.out.println("Cancelled.");
-                    break;
-                }
+        int newShelfQty = chosenProduct.getQuantity() + restockAmount;
+        if (newShelfQty > shelfMaxPerItem) {
+            System.out.println("Error: shelf would exceed max of " + shelfMaxPerItem + ".");
+            System.out.println(chosenProduct.getName() + " would have " + newShelfQty
+                    + " on the shelf.");
+            return;
+        }
 
-                inventory.restockProduct(section, productId, quantityToRestock);
-
-                System.out.println();
-                System.out.println("Inventory restocked successfully.");
-                System.out.println("Section: " + section);
-                System.out.println("Product: " + product.getName());
-                System.out.println("ID: " + productId);
-                System.out.println("Amount Added: " + quantityToRestock);
-                System.out.println("New Stock: " + product.getQuantity());
-
-                done = true;
-            } catch (NotFoundException | InvalidQuantityException e) {
-                System.out.println("Error: " + e.getMessage());
-                System.out.println("Please try again.");
-            } catch (Exception e) {
-                System.out.println("Invalid input. Please enter numbers only.");
-            }
+        try {
+            inventory.decreaseStock(aisleSection, chosenProduct.getID(), restockAmount);
+            chosenProduct.stockToShelf(restockAmount);
+            System.out.println("Restocked successfully (moved from inventory to shelf).");
+            System.out.println(chosenProduct.getName() + " — shelf: "
+                    + chosenProduct.getQuantity() + ", back room: "
+                    + inventory.getProduct(aisleSection, chosenProduct.getID()).getQuantity());
+        } catch (NotFoundException | InvalidQuantityException e) {
+            System.out.println("Restock error: " + e.getMessage());
         }
     }
 
@@ -608,26 +582,19 @@ public final class EmployeeMenu {
     }
 
     private static String chooseInventorySection(Scanner scanner) {
-        System.out.println("Choose a section:");
-        System.out.println("1. Produce");
-        System.out.println("2. Dairy");
-        System.out.println("3. Snacks");
-        System.out.println("4. Supplies");
-        int choice = ConsoleInput.readInt(scanner, "Enter choice: ");
-
-        switch (choice) {
-            case 1:
-                return "Produce";
-            case 2:
-                return "Dairy";
-            case 3:
-                return "Snacks";
-            case 4:
-                return "Supplies";
-            default:
-                System.out.println("Invalid section.");
-                return "";
+        String[] sections = StoreDataLoader.AISLE_SECTION_NAMES;
+        System.out.println("Inventory section (Dairy, Fruits, Meats — matches store aisles):");
+        for (int i = 0; i < sections.length; i++) {
+            System.out.println((i + 1) + ". " + sections[i]);
         }
+        int choice = ConsoleInput.readInt(scanner,
+                "Enter choice (1-" + sections.length + "): ");
+
+        if (choice >= 1 && choice <= sections.length) {
+            return sections[choice - 1];
+        }
+        System.out.println("Invalid section.");
+        return "";
     }
 
     private static void printLowStockAisles(List<Aisles> aisles, int threshold) {

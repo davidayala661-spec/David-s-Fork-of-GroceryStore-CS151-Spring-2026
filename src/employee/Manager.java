@@ -1,9 +1,9 @@
 package employee;
 
+import customers.Customer;
+import data.StoreDataLoader;
 import inventory.Inventory;
 import products.Products;
-import shelf.Shelf;
-import customers.Customer;
 import exceptions.CapacityExceededException;
 import exceptions.DuplicateProductException;
 import exceptions.InvalidPriceException;
@@ -20,6 +20,10 @@ public class Manager extends Employee {
 
     // Managers can add quantity to the inventory
     public boolean addProduct(Inventory inventory, String section, Products product) {
+        if (!StoreDataLoader.isAisleInventorySection(section)) {
+            System.out.println("Managers can only add products to Dairy, Fruits, or Meats (store aisles).");
+            return false;
+        }
         try {
             inventory.addProduct(section, product);
             return true;
@@ -32,6 +36,11 @@ public class Manager extends Employee {
 
     // Managers can remove quantity from the inventory
     public void removeProduct(Inventory inventory, String section, int productID) {
+        if (!StoreDataLoader.isAisleInventorySection(section)) {
+            System.out.println("Managers can only remove products from Dairy, Fruits, or Meats (store aisles).");
+            return;
+        }
+
         Products product = inventory.getProduct(section, productID);
 
         if (product == null) {
@@ -49,6 +58,11 @@ public class Manager extends Employee {
 
     // Managers can change product prices
     public void changePrice(Inventory inventory, String section, int productID, double newPrice) {
+        if (!StoreDataLoader.isAisleInventorySection(section)) {
+            System.out.println("Managers can only change prices in Dairy, Fruits, or Meats (store aisles).");
+            return;
+        }
+
         Products product = inventory.getProduct(section, productID);
 
         if (product == null) {
