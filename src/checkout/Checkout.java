@@ -152,7 +152,7 @@ public final class Checkout {
             for (List<Products> shelfProducts : aisle.getDirectShelves().values()) {
                 for (Products product : shelfProducts) {
 
-                    // 🔥 FIX: trim + case-insensitive comparison
+                    // trim + case-insensitive comparison
                     if (product.getName().trim().equalsIgnoreCase(name.trim())) {
                         return product;
                     }
