@@ -101,8 +101,7 @@ The program starts in the terminal with the grocery store role menu. Type **`EXI
 
 ## Usage
 
-Video Link: TBD
-
+Video Link: https://www.youtube.com/watch?v=gZQiSIkY_ps
 This project simulates a grocery store: **customers** shop (cart, aisles, checkout), and **employees** (stockers and managers) manage shelves and inventory.
 
 ### First launch
@@ -178,12 +177,9 @@ Opens the **Employee menu** (`EmployeeMenu`): choose **Stocker** or **Manager**,
 
 
 **Vishalkiran Raichur**
-- UML diagram
-- Cutomer methods and logic 
-- VIP customer
-- shopping cart
-- checkout
-
+- Customer methods and logic (Customer, Displayable, VIP Customer
+- **ShoppingCart** Functionality and methods
+- **Checkout** system
 
 
 **Suparn Posina (oops408)**
