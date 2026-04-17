@@ -68,6 +68,66 @@ public class ShoppingCart {
         System.out.println("Cart cleared.");
     }
 
+    public void findItemInCart(String itemName) {
+    if (itemName == null || itemName.trim().isEmpty()) {
+        System.out.println("Please enter a valid item name.");
+        return;
+    }
+
+    int count = 0;
+
+    for (String item : items) {
+        if (item != null && item.equalsIgnoreCase(itemName.trim())) {
+            count++;
+        }
+    }
+
+    if (count == 0) {
+        System.out.println(itemName + " is not in the cart.");
+    } else {
+        System.out.println(itemName + " appears " + count + " time(s) in the cart.");
+    }
+}
+
+public void viewCartSummary() {
+    if (items.isEmpty()) {
+        System.out.println("Cart is empty.");
+        return;
+    }
+
+    int totalItems = items.size();
+    int uniqueItems = 0;
+    int duplicateItems = 0;
+
+    ArrayList<String> checkedItems = new ArrayList<>();
+
+    for (String item : items) {
+        if (item == null || checkedItems.contains(item)) {
+            continue;
+        }
+
+        checkedItems.add(item);
+        uniqueItems++;
+
+        int count = 0;
+        for (String otherItem : items) {
+            if (item.equalsIgnoreCase(otherItem)) {
+                count++;
+            }
+        }
+
+        if (count > 1) {
+            duplicateItems += count - 1;
+            System.out.println(item + " has " + count + " copies in the cart.");
+        }
+    }
+
+    System.out.println("Cart summary:");
+    System.out.println("Total items: " + totalItems);
+    System.out.println("Unique items: " + uniqueItems);
+    System.out.println("Duplicate items: " + duplicateItems);
+}
+
     // Returns a string representation of the cart
     @Override
     public String toString() {
